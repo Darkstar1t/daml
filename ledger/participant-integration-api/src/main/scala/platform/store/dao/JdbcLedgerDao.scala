@@ -93,6 +93,7 @@ private class JdbcLedgerDao(
   private val queries = dbType match {
     case DbType.Postgres => PostgresQueries
     case DbType.H2Database => H2DatabaseQueries
+    case DbType.Oracle => OracleQueries
   }
 
   private val logger = ContextualizedLogger.get(this.getClass)
@@ -1220,5 +1221,51 @@ private[platform] object JdbcLedgerDao {
     override protected[JdbcLedgerDao] def enforceSynchronousCommit(implicit
         conn: Connection
     ): Unit = ()
+  }
+
+  object OracleQueries extends Queries {
+
+    override protected[JdbcLedgerDao] val SQL_INSERT_PACKAGE: String =
+      """insert into packages(package_id, upload_id, source_description, size, known_since, ledger_offset, package)
+        |select {package_id}, {upload_id}, {source_description}, {size}, {known_since}, ledger_end, {package}
+        |from parameters
+        |on conflict (package_id) do nothing""".stripMargin
+
+    override protected[JdbcLedgerDao] val SQL_INSERT_COMMAND: String =
+      """insert into participant_command_submissions as pcs (deduplication_key, deduplicate_until)
+        |values ({deduplicationKey}, {deduplicateUntil})
+        |on conflict (deduplication_key)
+        |  do update
+        |  set deduplicate_until={deduplicateUntil}
+        |  where pcs.deduplicate_until < {submittedAt}""".stripMargin
+
+    override protected[JdbcLedgerDao] val DUPLICATE_KEY_ERROR: String =
+      "duplicate key"
+
+    override protected[JdbcLedgerDao] val SQL_TRUNCATE_TABLES: String =
+      """truncate table configuration_entries cascade;
+        |truncate table package_entries cascade;
+        |truncate table parameters cascade;
+        |truncate table participant_command_completions cascade;
+        |truncate table participant_command_submissions cascade;
+        |truncate table participant_events cascade;
+        |truncate table participant_contracts cascade;
+        |truncate table participant_contract_witnesses cascade;
+        |truncate table parties cascade;
+        |truncate table party_entries cascade;
+      """.stripMargin
+
+    override protected[JdbcLedgerDao] def enforceSynchronousCommit(implicit
+                                                                   conn: Connection
+                                                                  ): Unit = {
+      val statement =
+        conn.prepareStatement("SET LOCAL synchronous_commit = 'on'")
+      try {
+        statement.execute()
+        ()
+      } finally {
+        statement.close()
+      }
+    }
   }
 }

@@ -34,11 +34,20 @@ private[platform] object DbType {
         supportsAsynchronousCommits = false,
       )
 
+  object Oracle
+    extends DbType(
+      "oracle",
+      "oracle.jdbc.OracleDriver",
+      supportsParallelWrites = true,
+      supportsAsynchronousCommits = true,
+    )
+
   def jdbcType(jdbcUrl: String): DbType = jdbcUrl match {
     case h2 if h2.startsWith("jdbc:h2:") => H2Database
     case pg if pg.startsWith("jdbc:postgresql:") => Postgres
+    case pg if pg.startsWith("jdbc:oracle:") => Oracle
     case _ =>
-      sys.error(s"JDBC URL doesn't match any supported databases (h2, pg)")
+      sys.error(s"JDBC URL doesn't match any supported databases (h2, pg, oracle)")
   }
 
   sealed trait AsyncCommitMode {
