@@ -5,7 +5,6 @@ package com.daml.platform.store.dao
 
 import com.daml.platform.store.DbType
 import com.daml.testing.oracle.OracleAroundAll
-import com.daml.testing.postgresql.PostgresAroundAll
 import org.scalatest.AsyncTestSuite
 
 private[dao] trait JdbcLedgerDaoBackendOracle
@@ -15,5 +14,5 @@ private[dao] trait JdbcLedgerDaoBackendOracle
 
   override protected val dbType: DbType = DbType.Oracle
 
-  override protected def jdbcUrl: String = s"jdbc:oracle:thin:@//localhost:$oraclePort/XEPDB1"
+  override protected def jdbcUrl: String = s"jdbc:oracle:thin:@//localhost:$oraclePort/ORCLPDB1"
 }
