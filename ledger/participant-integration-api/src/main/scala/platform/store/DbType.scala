@@ -38,14 +38,15 @@ private[platform] object DbType {
     extends DbType(
       "oracle",
       "oracle.jdbc.OracleDriver",
-      supportsParallelWrites = true,
-      supportsAsynchronousCommits = true,
+      supportsParallelWrites = false,
+      //TODO find out if there is an oracle equivalent
+      supportsAsynchronousCommits = false,
     )
 
   def jdbcType(jdbcUrl: String): DbType = jdbcUrl match {
     case h2 if h2.startsWith("jdbc:h2:") => H2Database
     case pg if pg.startsWith("jdbc:postgresql:") => Postgres
-    case pg if pg.startsWith("jdbc:oracle:") => Oracle
+    case oracle if oracle.startsWith("jdbc:oracle:") => Oracle
     case _ =>
       sys.error(s"JDBC URL doesn't match any supported databases (h2, pg, oracle)")
   }
