@@ -7,4 +7,5 @@
 -- create_consumed_at is stored as byte array
 ---------------------------------------------------------------------------------------------------
 
-ALTER TABLE participant_events ALTER COLUMN create_consumed_at TYPE BLOB;
+-- need to convert this type properly
+-- create_consumed_at in participant_events set to blob in V20 script

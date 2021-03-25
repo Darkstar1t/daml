@@ -10,8 +10,9 @@
 CREATE TABLE party_entries
 (
     -- The ledger end at the time when the party allocation was added
-    ledger_offset    BLOB primary key not null,
-    recorded_at      timestamp        not null, --with timezone
+    -- Cannot have a binary/BLOB field as primary key on oracle
+    ledger_offset    NVARCHAR2(1000) primary key not null,
+    recorded_at      timestamp                   not null, --with timezone
     -- SubmissionId for the party allocation
     submission_id    NVARCHAR2(1000),
     -- participant id that initiated the allocation request
@@ -22,7 +23,7 @@ CREATE TABLE party_entries
     -- displayName
     display_name     NVARCHAR2(1000),
     -- The type of entry, 'accept' or 'reject'
-    typ              NVARCHAR2(1000)  not null,
+    typ              NVARCHAR2(1000)             not null,
     -- If the type is 'reject', then the rejection reason is set.
     -- Rejection reason is a human-readable description why the change was rejected.
     rejection_reason NVARCHAR2(1000),

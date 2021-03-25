@@ -27,7 +27,7 @@ CREATE TABLE configuration_entries
     rejection_reason NVARCHAR2(1000),
 
     -- Check that fields are correctly set based on the type.
-    constraint check_entry
+    constraint configuration_entries_check_entry
         check (
                 (typ = 'accept' and rejection_reason is null) or
                 (typ = 'reject' and rejection_reason is not null))

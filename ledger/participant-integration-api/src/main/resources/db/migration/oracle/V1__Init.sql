@@ -26,7 +26,7 @@ CREATE TABLE ledger_entries
     application_id        NVARCHAR2(1000),
     submitter             NVARCHAR2(1000),
     workflow_id           NVARCHAR2(1000),
-    effective_at TIMESTAMP WITH TIME ZONE,
+    effective_at          TIMESTAMP WITH TIME ZONE,
     recorded_at           TIMESTAMP WITH TIME ZONE not null,
     -- The transaction is stored using the .proto definition in
     -- `daml-lf/transaction/src/main/protobuf/com/digitalasset/daml/lf/transaction.proto`, and
@@ -85,11 +85,11 @@ CREATE TABLE contracts
     -- using the QualifiedName#toString format
     name           NVARCHAR2(1000)                                            not null,
     -- this is denormalized much like `transaction_id` -- see comment above.
-    create_offset  NUMBER references ledger_entries (ledger_offset)           not null,
+    create_offset  NUMBER                                                     not null,
     -- this on the other hand _cannot_ be easily found out by looking into
     -- `ledger_entries` -- you'd have to traverse from `create_offset` which
     -- would be prohibitively expensive.
-    archive_offset NUMBER references ledger_entries (ledger_offset),
+    archive_offset NUMBER,
     -- the serialized contract value, using the definition in
     -- `daml-lf/transaction/src/main/protobuf/com/digitalasset/daml/lf/value.proto`
     -- and the encoder in `ContractSerializer.scala`.
@@ -97,7 +97,11 @@ CREATE TABLE contracts
     -- only present in contracts for templates that have a contract key definition.
     -- encoded using the definition in
     -- `daml-lf/transaction/src/main/protobuf/com/digitalasset/daml/lf/value.proto`.
-    key            BLOB
+    key            BLOB,
+
+    CONSTRAINT contracts_create_offset_fkey foreign key (create_offset) references ledger_entries (ledger_offset),
+    CONSTRAINT contracts_archive_offset_fkey foreign key (archive_offset) references ledger_entries (ledger_offset)
+
 );
 
 -- These two indices below could be a source performance bottleneck. Every additional index slows

@@ -7,27 +7,30 @@
 -- Stable offsets are stored as BLOB and can be sorted lexicographically.
 ---------------------------------------------------------------------------------------------------
 
-ALTER TABLE parameters ALTER COLUMN ledger_end DROP NOT NULL;
+ALTER TABLE parameters MODIFY ledger_end NULL;
 
 ALTER TABLE contract_divulgences
-    DROP CONSTRAINT contract_divulgences_ledger_offset_fkey1;
+    DROP CONSTRAINT contract_divulgences_offset_key;
 ALTER TABLE contracts
     DROP CONSTRAINT contracts_create_offset_fkey;
 ALTER TABLE contracts
     DROP CONSTRAINT contracts_archive_offset_fkey;
 
-ALTER TABLE configuration_entries ALTER COLUMN ledger_offset TYPE BLOB using decode(lpad(to_hex(ledger_offset), 16, '0'), 'hex');
-ALTER TABLE contract_divulgences ALTER COLUMN ledger_offset TYPE BLOB using decode(lpad(to_hex(ledger_offset), 16, '0'), 'hex');
-ALTER TABLE contracts ALTER COLUMN create_offset TYPE BLOB using decode(lpad(to_hex(create_offset), 16, '0'), 'hex');
-ALTER TABLE contracts ALTER COLUMN archive_offset TYPE BLOB using decode(lpad(to_hex(archive_offset), 16, '0'), 'hex');
-ALTER TABLE ledger_entries ALTER COLUMN ledger_offset TYPE BLOB using decode(lpad(to_hex(ledger_offset), 16, '0'), 'hex');
-ALTER TABLE packages ALTER COLUMN ledger_offset TYPE BLOB using decode(lpad(to_hex(ledger_offset), 16, '0'), 'hex');
-ALTER TABLE package_entries ALTER COLUMN ledger_offset TYPE BLOB using decode(lpad(to_hex(ledger_offset), 16, '0'), 'hex');
-ALTER TABLE parameters ALTER COLUMN ledger_end TYPE BLOB using decode(lpad(to_hex(ledger_end), 16, '0'), 'hex');
-ALTER TABLE participant_command_completions ALTER COLUMN completion_offset TYPE BLOB using decode(lpad(to_hex(completion_offset), 16, '0'), 'hex');
-ALTER TABLE participant_events ALTER COLUMN event_offset TYPE BLOB using decode(lpad(to_hex(event_offset), 16, '0'), 'hex');
-ALTER TABLE parties ALTER COLUMN ledger_offset TYPE BLOB using decode(lpad(to_hex(ledger_offset), 16, '0'), 'hex');
-ALTER TABLE party_entries ALTER COLUMN ledger_offset TYPE BLOB using decode(lpad(to_hex(ledger_offset), 16, '0'), 'hex');
+-- blob is problematic for ledger_offset because this is a primary key for many tables
+-- update CONFIGURATION_ENTRIES SET
+--                                  LEDGER_OFFSET = REPLACE(LEDGER_OFFSET, decode(lpad(rawtohex(ledger_offset), 16, '0'), 'hex'));
+-- ALTER TABLE configuration_entries MODIFY ledger_offset BLOB;
+-- ALTER TABLE contract_divulgences MODIFY ledger_offset BLOB;
+-- ALTER TABLE contracts MODIFY create_offset BLOB;
+-- ALTER TABLE contracts MODIFY archive_offset BLOB;
+-- ALTER TABLE ledger_entries MODIFY ledger_offset BLOB;
+-- ALTER TABLE packages MODIFY ledger_offset BLOB;
+-- ALTER TABLE package_entries MODIFY ledger_offset BLOB;
+-- ALTER TABLE parameters MODIFY ledger_end BLOB;
+-- ALTER TABLE participant_command_completions MODIFY completion_offset BLOB;
+-- ALTER TABLE participant_events MODIFY event_offset BLOB;
+-- ALTER TABLE parties MODIFY ledger_offset BLOB;
+-- ALTER TABLE party_entries MODIFY ledger_offset BLOB;
 
 ALTER TABLE contract_divulgences
     add foreign key (ledger_offset) references ledger_entries (ledger_offset);

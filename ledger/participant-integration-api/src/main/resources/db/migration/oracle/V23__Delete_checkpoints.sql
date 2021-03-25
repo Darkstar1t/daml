@@ -28,10 +28,10 @@ delete from participant_command_completions
 where application_id is null and submitting_party is null and command_id is null;
 
 alter table participant_command_completions
-alter column application_id set not null;
+modify application_id not null;
 
 alter table participant_command_completions
-alter column submitting_party set not null;
+modify submitting_party not null;
 
 alter table participant_command_completions
-alter column command_id set not null;
+modify command_id not null;

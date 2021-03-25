@@ -9,13 +9,13 @@ class JdbLedgerDaoOracleDatabaseSpec
     with JdbcLedgerDaoSuite
     with JdbcLedgerDaoBackendOracle
     with JdbcLedgerDaoPackagesSpec
-    with JdbcLedgerDaoActiveContractsSpec
-    with JdbcLedgerDaoCompletionsSpec
-    with JdbcLedgerDaoConfigurationSpec
-    with JdbcLedgerDaoContractsSpec
-    with JdbcLedgerDaoDivulgenceSpec
-    with JdbcLedgerDaoPartiesSpec
-    with JdbcLedgerDaoTransactionsSpec
-    with JdbcLedgerDaoTransactionTreesSpec
-    with JdbcLedgerDaoTransactionsWriterSpec
+//    with JdbcLedgerDaoActiveContractsSpec
+//    with JdbcLedgerDaoCompletionsSpec
+//    with JdbcLedgerDaoConfigurationSpec
+//    with JdbcLedgerDaoContractsSpec
+//    with JdbcLedgerDaoDivulgenceSpec
+//    with JdbcLedgerDaoPartiesSpec
+//    with JdbcLedgerDaoTransactionsSpec
+//    with JdbcLedgerDaoTransactionTreesSpec
+//    with JdbcLedgerDaoTransactionsWriterSpec
     with JdbcAtomicTransactionInsertion

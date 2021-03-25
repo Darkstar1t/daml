@@ -14,5 +14,6 @@ private[dao] trait JdbcLedgerDaoBackendOracle
 
   override protected val dbType: DbType = DbType.Oracle
 
+  //TODO BH: figure out why username is not being picked up
   override protected def jdbcUrl: String = s"jdbc:oracle:thin:$oracleUser/$oraclePwd@//localhost:$oraclePort/XEPDB1"
 }

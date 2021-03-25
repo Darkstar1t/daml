@@ -9,7 +9,7 @@
 ---------------------------------------------------------------------------------------------------
 
 
-CREATE TABLE contract_divulgences
+CREATE TABLE contract_divulgences_old
 (
     contract_id    NVARCHAR2(1000) references contracts (id)                  not null,
     -- The party to which the given contract was divulged
@@ -19,6 +19,6 @@ CREATE TABLE contract_divulgences
     -- The transaction ID at which the contract was divulged to the given party
     transaction_id NVARCHAR2(1000) references ledger_entries (transaction_id) not null,
 
-    CONSTRAINT contract_divulgences_idx UNIQUE (contract_id, party)
+    CONSTRAINT contract_divulgences_idx_old UNIQUE (contract_id, party)
 );
 
