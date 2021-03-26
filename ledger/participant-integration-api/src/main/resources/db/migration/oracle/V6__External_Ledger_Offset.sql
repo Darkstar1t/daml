@@ -8,5 +8,7 @@
 -- that corresponds to the index ledger end.
 ---------------------------------------------------------------------------------------------------
 
-ALTER TABLE parameters
-ADD external_ledger_end NVARCHAR2(1000);
+-- added to V1__
+
+-- ALTER TABLE parameters
+--     ADD external_ledger_end NVARCHAR2(1000);

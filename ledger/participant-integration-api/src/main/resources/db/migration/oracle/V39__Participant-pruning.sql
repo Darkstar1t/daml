@@ -10,4 +10,4 @@
 
 -- Add the column for most recent pruning offset to parameters.
 -- A value of NULL means that the participant has not been pruned so far.
-ALTER TABLE parameters ADD COLUMN participant_pruned_up_to_inclusive BLOB;
+-- ALTER TABLE parameters ADD COLUMN participant_pruned_up_to_inclusive BLOB;

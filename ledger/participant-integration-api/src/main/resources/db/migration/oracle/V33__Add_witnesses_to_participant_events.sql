@@ -10,21 +10,25 @@
 -- Drop unused tables
 ---------------------------------------------------------------------------------------------------
 
-alter table participant_events
-  add column flat_event_witnesses NVARCHAR2(1000)[] not null default '{}',
-  add column tree_event_witnesses NVARCHAR2(1000)[] not null default '{}'
-;
+-- already added to V20__Events_new_schema
+-- alter table participant_events
+--   add column flat_event_witnesses NVARCHAR2(1000)[] not null default '{}',
+--   add column tree_event_witnesses NVARCHAR2(1000)[] not null default '{}'
+-- ;
 
-create index on participant_events using GIN (flat_event_witnesses);
-create index on participant_events using GIN (tree_event_witnesses);
+-- GIN does not exist as index strategy on oracle
+--      -- create index on participant_events using GIN (flat_event_witnesses);
+--      -- create index on participant_events using GIN (tree_event_witnesses);
+-- create index participant_events_flat_event_witnesses_idx on participant_events (flat_event_witnesses);
+-- create index participant_events_tree_event_witnesses_idx on participant_events (tree_event_witnesses);
 
-update participant_events set flat_event_witnesses = o.warr
-    from (select event_id, array_agg(event_witness) as warr from participant_event_flat_transaction_witnesses group by event_id) as o
-    where participant_events.event_id = o.event_id;
+-- update participant_events set flat_event_witnesses = o.warr
+--     from (select event_id, array_agg(event_witness) as warr from participant_event_flat_transaction_witnesses group by event_id) as o
+--     where participant_events.event_id = o.event_id;
+--
+-- update participant_events set tree_event_witnesses = o.warr
+--     from (select event_id, array_agg(event_witness) as warr from participant_event_transaction_tree_witnesses group by event_id) as o
+--     where participant_events.event_id = o.event_id;
 
-update participant_events set tree_event_witnesses = o.warr
-    from (select event_id, array_agg(event_witness) as warr from participant_event_transaction_tree_witnesses group by event_id) as o
-    where participant_events.event_id = o.event_id;
-
-drop table participant_event_flat_transaction_witnesses;
-drop table participant_event_transaction_tree_witnesses;
+-- drop table participant_event_flat_transaction_witnesses;
+-- drop table participant_event_transaction_tree_witnesses;

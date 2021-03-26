@@ -10,28 +10,29 @@
 
 
 -- ledger_entries
-delete from ledger_entries where typ = 'checkpoint';
+-- delete from ledger_entries where typ = 'checkpoint';
 
-alter table ledger_entries drop constraint check_entry;
-alter table ledger_entries add constraint check_entry check (
-    (typ = 'transaction' and transaction_id is not null and effective_at is not null and transaction is not null and (
-      (submitter is null and application_id is null and command_id is null) or
-      (submitter is not null and application_id is not null and command_id is not null)
-    )) or
-    (typ = 'rejection' and command_id is not null and application_id is not null and submitter is not null and
-     rejection_type is not null and rejection_description is not null)
-);
+-- alter table ledger_entries drop constraint check_entry;
+-- alter table ledger_entries add constraint check_entry check (
+--     (typ = 'transaction' and transaction_id is not null and effective_at is not null and transaction is not null and (
+--       (submitter is null and application_id is null and command_id is null) or
+--       (submitter is not null and application_id is not null and command_id is not null)
+--     )) or
+--     (typ = 'rejection' and command_id is not null and application_id is not null and submitter is not null and
+--      rejection_type is not null and rejection_description is not null)
+-- );
 
 
+-- V16__
 -- participant_command_completions
-delete from participant_command_completions
-where application_id is null and submitting_party is null and command_id is null;
+-- delete from participant_command_completions
+-- where application_id is null and submitting_party is null and command_id is null;
 
-alter table participant_command_completions
-modify application_id not null;
+-- alter table participant_command_completions
+-- modify application_id not null;
 
-alter table participant_command_completions
-modify submitting_party not null;
+-- alter table participant_command_completions
+-- modify submitting_party not null;
 
-alter table participant_command_completions
-modify command_id not null;
+-- alter table participant_command_completions
+-- modify command_id not null;

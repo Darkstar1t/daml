@@ -8,8 +8,10 @@
 -- from (command_id, application_id) to (submitter, command_id, application_id).
 ---------------------------------------------------------------------------------------------------
 
-DROP INDEX idx_transactions_deduplication;
+-- dropped by V30__
+
+-- DROP INDEX idx_transactions_deduplication;
 
 -- This embodies the deduplication in the Ledger API.
-CREATE UNIQUE INDEX idx_transactions_deduplication
-  ON ledger_entries (submitter, command_id, application_id);
+-- CREATE UNIQUE INDEX idx_transactions_deduplication
+--   ON ledger_entries (submitter, command_id, application_id);

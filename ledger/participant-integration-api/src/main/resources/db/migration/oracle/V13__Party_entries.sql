@@ -15,9 +15,6 @@ CREATE TABLE party_entries
     recorded_at      timestamp                   not null, --with timezone
     -- SubmissionId for the party allocation
     submission_id    NVARCHAR2(1000),
-    -- participant id that initiated the allocation request
-    -- may be null for implicit party that has not yet been allocated
-    participant_id   NVARCHAR2(1000),
     -- party
     party            NVARCHAR2(1000),
     -- displayName

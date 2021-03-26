@@ -8,15 +8,15 @@
 --
 ---------------------------------------------------------------------------------------------------
 
-drop table contracts cascade;
-drop table contract_data cascade;
-drop table contract_divulgences cascade;
-drop table contract_keys cascade;
-drop table contract_key_maintainers cascade;
-drop table contract_observers cascade;
-drop table contract_signatories cascade;
-drop table contract_witnesses cascade;
-drop table disclosures cascade;
-drop table ledger_entries cascade;
+-- drop table contracts cascade constraints;
+-- drop table contract_data cascade constraints;
+-- drop table contract_divulgences cascade constraints;
+-- drop table contract_keys cascade constraints;
+-- drop table contract_key_maintainers cascade constraints;
+-- drop table contract_observers cascade constraints;
+-- drop table contract_signatories cascade constraints;
+-- drop table contract_witnesses cascade constraints;
+-- drop table disclosures cascade constraints;
+-- drop table ledger_entries cascade constraints;
 
-delete from participant_command_completions where application_id is null and submitting_party is null;
+-- delete from participant_command_completions where application_id is null and submitting_party is null;

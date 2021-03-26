@@ -15,11 +15,11 @@ CREATE TABLE configuration_entries
     recorded_at      timestamp          not null, -- with time zone
 
     submission_id    NVARCHAR2(1000)    not null,
-    participant_id   NVARCHAR2(1000)    not null,
     -- The type of entry, one of 'accept' or 'reject'.
     typ              NVARCHAR2(1000)    not null,
     -- The configuration that was proposed and either accepted or rejected depending on the type.
     -- Encoded according to participant-state/protobuf/ledger_configuration.proto.
+    -- Add the current configuration column to parameters.
     configuration    BLOB               not null,
 
     -- If the type is 'rejection', then the rejection reason is set.
@@ -35,9 +35,9 @@ CREATE TABLE configuration_entries
 
 -- Index for retrieving the configuration entry by submission identifier.
 -- To be used for completing configuration submissions.
-CREATE UNIQUE INDEX idx_configuration_submission
-    ON configuration_entries (submission_id, participant_id);
+CREATE UNIQUE INDEX idx_configuration_submission ON configuration_entries (submission_id);
 
--- Add the current configuration column to parameters.
-ALTER TABLE parameters
-    ADD configuration BLOB;
+-- added to V1__
+
+-- ALTER TABLE parameters
+--     ADD configuration BLOB;

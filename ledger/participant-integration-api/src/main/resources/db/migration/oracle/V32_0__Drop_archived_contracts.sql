@@ -14,5 +14,7 @@
 -- table and remove from both participant_contract_witnesses and participant_contracts all
 -- those rows that are related to contract_ids that have been subject to a consuming event
 
-delete from participant_contract_witnesses where contract_id in (select contract_id from participant_events where exercise_consuming);
-delete from participant_contracts where contract_id in (select contract_id from participant_events where exercise_consuming);
+-- delete from participant_contract_witnesses where contract_id in (
+--     select contract_id from participant_events where exercise_consuming = 1);
+-- delete from participant_contracts where contract_id in (
+--     select contract_id from participant_events where exercise_consuming = 1);

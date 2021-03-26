@@ -6,5 +6,7 @@
 --
 -- This schema version adds an index to the disclosures table
 
-CREATE INDEX idx_disclosures_transaction_id
-    ON disclosures (transaction_id);
+-- dropped by V30__
+
+-- CREATE INDEX idx_disclosures_transaction_id
+--     ON disclosures (transaction_id);

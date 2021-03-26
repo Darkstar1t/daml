@@ -6,5 +6,7 @@
 --
 -- This schema version marks the contracts.create_event_id column as NOT NULL.
 
-ALTER TABLE contracts
-    MODIFY create_event_id NVARCHAR2(1000) NOT NULL;
+-- dropped by V30__
+
+-- ALTER TABLE contracts
+--     MODIFY create_event_id NVARCHAR2(1000) NOT NULL;

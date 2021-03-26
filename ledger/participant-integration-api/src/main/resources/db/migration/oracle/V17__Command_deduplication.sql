@@ -8,7 +8,7 @@
 ---------------------------------------------------------------------------------------------------
 
 
-DROP INDEX idx_transactions_deduplication;
+-- DROP INDEX idx_transactions_deduplication;
 
 
 CREATE TABLE participant_command_submissions

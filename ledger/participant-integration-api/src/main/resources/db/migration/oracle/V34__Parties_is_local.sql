@@ -9,13 +9,14 @@
 -- To initialize parties.is_local, rely on party_entries.is_local.
 ---------------------------------------------------------------------------------------------------
 
-ALTER TABLE parties ADD COLUMN is_local bool;
+-- Added directly to V4_0__Add_parties.sql
+-- ALTER TABLE parties ADD COLUMN is_local NUMBER(1,0);
 
-UPDATE parties SET is_local = (
-SELECT party_entries.is_local
-FROM party_entries where party_entries.party = parties.party);
+-- UPDATE parties SET is_local = (
+-- SELECT party_entries.is_local
+-- FROM party_entries where party_entries.party = parties.party);
 
 -- implicit party allocation produces local parties not present in party_entries
-UPDATE parties SET is_local = true WHERE is_local IS NULL;
+-- UPDATE parties SET is_local = true WHERE is_local IS NULL;
 
-ALTER TABLE parties ALTER COLUMN is_local SET NOT NULL;
+-- ALTER TABLE parties ALTER COLUMN is_local SET NOT NULL;

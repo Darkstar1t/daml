@@ -5,6 +5,4 @@
 -- V26.2: Set participant_contracts.create_argument to be non-nullable
 ---------------------------------------------------------------------------------------------------
 
-alter table participant_contracts
-    alter column template_id set not null,
-    alter column create_argument set not null;
+-- already captured in V26_0__Contract_new_schema.sql
