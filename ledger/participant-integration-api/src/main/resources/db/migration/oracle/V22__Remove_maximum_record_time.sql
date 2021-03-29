@@ -9,7 +9,3 @@
 ---------------------------------------------------------------------------------------------------
 
 -- table dropped by V30__
-
--- UPDATE ledger_entries
--- SET rejection_type = 'InvalidLedgerTime'
--- WHERE rejection_type = 'TimedOut'

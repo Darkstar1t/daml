@@ -27,27 +27,9 @@ create table participant_contracts
 );
 
 -- support looking up a contract by key
+-- TODO BH: consider whether ORA_HASH() could help
 create unique index participant_contracts_idx on participant_contracts (create_key_hash_hex);
 
--- insert into participant_contracts
--- select contract_data.id                        as contract_id,
---        null                                    as template_id,     -- filled up in a subsequent migration
---        null                                    as create_argument, -- filled up in a subsequent migration
---        array_agg(contract_observers.observer)     filter (where contract_observers.observer is not null) || array_agg(contract_signatories.signatory) filter (where contract_signatories.signatory is not null) as create_stakeholders,
---        decode(contract_keys.value_hash, 'hex') as create_key_hash,
---        ledger_entries.effective_at             as create_ledger_effective_time
--- from contract_data
---          left join contracts on contracts.id = contract_data.id
---          left join contract_keys on contract_keys.contract_id = contract_data.id
---          left join ledger_entries on ledger_entries.transaction_id = contracts.transaction_id
---          left join contract_observers on contract_observers.contract_id = contract_data.id
---          left join contract_signatories on contract_signatories.contract_id = contract_data.id
--- group by (
---           contract_data.id,
---           template_id,
---           create_key_hash,
---           create_ledger_effective_time
---              );
 
 -- visibility of contracts to parties
 create table participant_contract_witnesses
@@ -59,12 +41,3 @@ create table participant_contract_witnesses
     foreign key (contract_id) references participant_contracts (contract_id)
 );
 
--- insert into participant_contract_witnesses
---     (
---         select contract_id, witness as contract_witness
---         from contract_witnesses
---                  join contracts on contracts.id = contract_witnesses.contract_id and contracts.archive_offset is null
---         union
---         select contract_id, party as contract_witness
---         from contract_divulgences
---     );

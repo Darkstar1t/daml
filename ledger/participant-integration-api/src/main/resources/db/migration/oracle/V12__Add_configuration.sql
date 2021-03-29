@@ -37,7 +37,3 @@ CREATE TABLE configuration_entries
 -- To be used for completing configuration submissions.
 CREATE UNIQUE INDEX idx_configuration_submission ON configuration_entries (submission_id);
 
--- added to V1__
-
--- ALTER TABLE parameters
---     ADD configuration BLOB;

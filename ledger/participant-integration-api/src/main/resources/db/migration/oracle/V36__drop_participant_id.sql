@@ -8,12 +8,4 @@
 
 -- added to V12__
 
--- DROP INDEX idx_configuration_submission;
--- ALTER TABLE configuration_entries
---     DROP COLUMN participant_id;
--- CREATE UNIQUE INDEX idx_configuration_submission ON configuration_entries (submission_id);
-
 -- added to V13__
-
--- ALTER TABLE party_entries
---     DROP COLUMN participant_id;

@@ -12,15 +12,5 @@
 -- but no other metadata.
 ---------------------------------------------------------------------------------------------------
 
--- Move the `contract` column (the serialized contract data) from contracts to contract_data.
+-- dropped by V30___
 
--- deleted by V30___
--- CREATE TABLE contract_data (
---   id             NVARCHAR2(1000) primary key not null,
---   -- the serialized contract value, using the definition in
---   -- `daml-lf/transaction/src/main/protobuf/com/digitalasset/daml/lf/value.proto`
---   -- and the encoder in `ContractSerializer.scala`.
---   contract       BLOB               not null
--- );
--- INSERT INTO contract_data (id, contract) SELECT id, contract FROM contracts;
--- ALTER TABLE contracts DROP COLUMN contract;

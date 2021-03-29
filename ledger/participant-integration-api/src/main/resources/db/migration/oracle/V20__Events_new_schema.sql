@@ -65,27 +65,4 @@ create index participant_events_event_offset on participant_events (event_offset
 -- create index participant_events_flat_event_witnesses_idx on participant_events (flat_event_witnesses);
 -- create index participant_events_tree_event_witnesses_idx on participant_events (tree_event_witnesses);
 
--- subset of witnesses to see the visibility in the flat transaction stream
--- create table participant_event_flat_transaction_witnesses
--- (
---     event_id      NVARCHAR2(1000) not null,
---     event_witness NVARCHAR2(1000) not null,
---
---     primary key (event_id, event_witness),
---     foreign key (event_id) references participant_events (event_id)
--- );
--- create index participant_event_flat_transaction_witnesses_event_idx on participant_event_flat_transaction_witnesses (event_id); -- join with events
--- create index participant_event_flat_transaction_witnesses_witness_idx on participant_event_flat_transaction_witnesses (event_witness);
--- filter by party
 
--- complement to participant_event_flat_transaction_witnesses to include
--- the visibility of events in the transaction trees stream
--- create table participant_event_witnesses_complement
--- (
---     event_id      NVARCHAR2(1000) not null,
---     event_witness NVARCHAR2(1000) not null,
---
---     foreign key (event_id) references participant_events (event_id)
--- );
--- create index participant_event_witnesses_complement_event_idx on participant_event_witnesses_complement (event_id); -- join with events
--- create index participant_event_witnesses_complement_witness_idx on participant_event_witnesses_complement (event_witness); -- filter by party

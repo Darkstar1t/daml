@@ -8,16 +8,3 @@
 
 -- dropped by V30__
 
--- ALTER TABLE ledger_entries
---     DROP CONSTRAINT check_entry;
--- ALTER TABLE ledger_entries
---     ADD CONSTRAINT check_entry CHECK (
---             (typ = 'transaction' and transaction_id is not null and effective_at is not null and
---              transaction is not null and (
---                      (submitter is null and application_id is null and command_id is null) or
---                      (submitter is not null and application_id is not null and command_id is not null)
---                  )) or
---             (typ = 'rejection' and command_id is not null and application_id is not null and submitter is not null and
---              rejection_type is not null and rejection_description is not null) or
---             (typ = 'checkpoint')
---         );

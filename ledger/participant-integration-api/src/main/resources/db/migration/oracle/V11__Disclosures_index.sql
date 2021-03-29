@@ -8,5 +8,3 @@
 
 -- dropped by V30__
 
--- CREATE INDEX idx_disclosures_transaction_id
---     ON disclosures (transaction_id);

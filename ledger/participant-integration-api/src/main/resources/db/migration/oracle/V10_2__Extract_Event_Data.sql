@@ -8,5 +8,3 @@
 
 -- dropped by V30__
 
--- ALTER TABLE contracts
---     MODIFY create_event_id NVARCHAR2(1000) NOT NULL;
