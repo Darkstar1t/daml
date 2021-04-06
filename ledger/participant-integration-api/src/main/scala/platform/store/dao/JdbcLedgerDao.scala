@@ -96,6 +96,8 @@ private class JdbcLedgerDao(
     case DbType.Oracle => OracleQueries
   }
 
+  private val PageSize = 100
+
   private val logger = ContextualizedLogger.get(this.getClass)
 
   override def currentHealth(): HealthStatus = dbDispatcher.currentHealth()
@@ -149,7 +151,7 @@ private class JdbcLedgerDao(
     }
 
   private val SQL_GET_CONFIGURATION_ENTRIES = SQL(
-    "select * from configuration_entries where ledger_offset > {startExclusive} and ledger_offset <= {endInclusive} order by ledger_offset asc limit {pageSize} offset {queryOffset}"
+    s"select * from configuration_entries where ledger_offset > {startExclusive} and ledger_offset <= {endInclusive} order by ledger_offset asc ${queries.limit(PageSize)} offset {queryOffset}"
   )
 
   override def lookupLedgerConfiguration()(implicit
@@ -306,7 +308,7 @@ private class JdbcLedgerDao(
   )(implicit loggingContext: LoggingContext): Future[PersistenceResponse] = {
     logger.info("Storing party entry")
     dbDispatcher.executeSql(metrics.daml.index.db.storePartyEntryDbMetrics) { implicit conn =>
-      ParametersTable.updateLedgerEnd(offsetStep)
+      ParametersTable.updateLedgerEnd(offsetStep, dbType)
       val savepoint = conn.setSavepoint()
 
       partyEntry match {
@@ -355,7 +357,7 @@ private class JdbcLedgerDao(
   }
 
   private val SQL_GET_PARTY_ENTRIES = SQL(
-    "select * from party_entries where ledger_offset>{startExclusive} and ledger_offset<={endInclusive} order by ledger_offset asc limit {pageSize} offset {queryOffset}"
+    "select * from party_entries where ledger_offset>{startExclusive} and ledger_offset<={endInclusive} order by ledger_offset asc {pageSize} offset {queryOffset}"
   )
 
   private val partyEntryParser: RowParser[(Offset, PartyLedgerEntry)] =
@@ -544,7 +546,7 @@ private class JdbcLedgerDao(
   private def updateLedgerEnd(offsetStep: OffsetStep)(implicit connection: Connection): Unit =
     Timed.value(
       metrics.daml.index.db.storeTransactionDbMetrics.updateLedgerEnd,
-      ParametersTable.updateLedgerEnd(offsetStep),
+      ParametersTable.updateLedgerEnd(offsetStep, dbType),
     )
 
   override def storeRejection(
@@ -558,7 +560,7 @@ private class JdbcLedgerDao(
       for (info <- submitterInfo) {
         handleError(offsetStep.offset, info, recordTime, reason)
       }
-      ParametersTable.updateLedgerEnd(offsetStep)
+      ParametersTable.updateLedgerEnd(offsetStep, dbType)
       Ok
     }
   }
@@ -603,11 +605,9 @@ private class JdbcLedgerDao(
               ).execute()
           }
         }
-        ParametersTable.updateLedgerEnd(CurrentOffset(newLedgerEnd))
+        ParametersTable.updateLedgerEnd(CurrentOffset(newLedgerEnd), dbType)
     }
   }
-
-  private val PageSize = 100
 
   private val SQL_SELECT_ALL_PARTIES =
     SQL("select party, display_name, ledger_offset, explicit, is_local from parties")
@@ -710,7 +710,7 @@ private class JdbcLedgerDao(
     logger.info("Storing package entry")
     dbDispatcher.executeSql(metrics.daml.index.db.storePackageEntryDbMetrics) {
       implicit connection =>
-        ParametersTable.updateLedgerEnd(offsetStep)
+        ParametersTable.updateLedgerEnd(offsetStep, dbType)
 
         if (packages.nonEmpty) {
           val uploadId =
@@ -759,7 +759,7 @@ private class JdbcLedgerDao(
   }
 
   private val SQL_GET_PACKAGE_ENTRIES = SQL(
-    "select * from package_entries where ledger_offset>{startExclusive} and ledger_offset<={endInclusive} order by ledger_offset asc limit {pageSize} offset {queryOffset}"
+    "select * from package_entries where ledger_offset>{startExclusive} and ledger_offset<={endInclusive} order by ledger_offset asc {pageSize} offset {queryOffset}"
   )
 
   private val packageEntryParser: RowParser[(Offset, PackageLedgerEntry)] =
@@ -791,7 +791,7 @@ private class JdbcLedgerDao(
             .on(
               "startExclusive" -> startExclusive,
               "endInclusive" -> endInclusive,
-              "pageSize" -> PageSize,
+              "pageSize" -> queries.limit(PageSize),
               "queryOffset" -> queryOffset,
             )
             .asVectorOf(packageEntryParser)
@@ -1135,6 +1135,9 @@ private[platform] object JdbcLedgerDao {
 
     // TODO: Avoid brittleness of error message checks
     protected[JdbcLedgerDao] def DUPLICATE_KEY_ERROR: String
+
+    //TODO BH: figure out why protected mechanism is not working here
+    def limit(numberOfItems: Int): String
   }
 
   object PostgresQueries extends Queries {
@@ -1168,6 +1171,8 @@ private[platform] object JdbcLedgerDao {
         |truncate table parties cascade;
         |truncate table party_entries cascade;
       """.stripMargin
+
+    override def limit(numberOfItems: Int): String = s"limit $numberOfItems "
 
     override protected[JdbcLedgerDao] def enforceSynchronousCommit(implicit
         conn: Connection
@@ -1217,6 +1222,8 @@ private[platform] object JdbcLedgerDao {
         |set referential_integrity true;
       """.stripMargin
 
+    override def limit(numberOfItems: Int): String = s"limit ${numberOfItems.toString}"
+
     /** H2 does not support asynchronous commits */
     override protected[JdbcLedgerDao] def enforceSynchronousCommit(implicit
         conn: Connection
@@ -1225,19 +1232,37 @@ private[platform] object JdbcLedgerDao {
 
   object OracleQueries extends Queries {
 
-    override protected[JdbcLedgerDao] val SQL_INSERT_PACKAGE: String =
-      """insert into packages(package_id, upload_id, source_description, size, known_since, ledger_offset, package)
-        |select {package_id}, {upload_id}, {source_description}, {size}, {known_since}, ledger_end, {package}
-        |from parameters
-        |on conflict (package_id) do nothing""".stripMargin
+    override protected[JdbcLedgerDao] val SQL_INSERT_PACKAGE: String = {
+//      """merge into packages p using dual
+//        |on (p.package_id = {package_id})
+//        |when not matched then
+//        |select {package_id}, {upload_id}, {source_description}, {size}, {known_since}, ledger_end, {package}
+//        |from parameters""".stripMargin
+
+      """insert
+        |/*+  IGNORE_ROW_ON_DUPKEY_INDEX ( PACKAGES ( package_id ) ) */
+        |into packages (package_id, upload_id, source_description, "size", known_since, ledger_offset, package)
+        |(select {package_id}, {upload_id}, {source_description}, {size}, {known_since}, ledger_end, {package}
+        |from parameters)""".stripMargin
+
+      //TODO BH: correct to get proper offset
+//      """insert
+//        |/*+  IGNORE_ROW_ON_DUPKEY_INDEX ( PACKAGES ( package_id ) ) */
+//        |into packages (package_id, upload_id, source_description, "size", known_since, ledger_offset, package)
+//        |VALUES ( {package_id}, {upload_id}, {source_description}, {size}, {known_since}, hextoraw('453d7a34'), {package})""".stripMargin
+    }
 
     override protected[JdbcLedgerDao] val SQL_INSERT_COMMAND: String =
-      """insert into participant_command_submissions as pcs (deduplication_key, deduplicate_until)
-        |values ({deduplicationKey}, {deduplicateUntil})
-        |on conflict (deduplication_key)
-        |  do update
-        |  set deduplicate_until={deduplicateUntil}
-        |  where pcs.deduplicate_until < {submittedAt}""".stripMargin
+      """merge into participant_command_submissions pcs
+        |using dual
+        |on (pcs.deduplication_key ={deduplicationKey})
+        |when matched then
+        |  update set pcs.deduplicate_until={deduplicateUntil}
+        |  where pcs.pcs.deduplicate_until < {submittedAt}
+        |when not matched then
+        | insert (pcs.deduplication_key, pcs.deduplicate_until)
+        |  values ({deduplicationKey}, {deduplicateUntil})
+""".stripMargin
 
     override protected[JdbcLedgerDao] val DUPLICATE_KEY_ERROR: String =
       "duplicate key"
@@ -1255,11 +1280,15 @@ private[platform] object JdbcLedgerDao {
         |truncate table party_entries cascade;
       """.stripMargin
 
+    override def limit(numberOfItems: Int): String = s"fetch next $numberOfItems rows only "
+
     override protected[JdbcLedgerDao] def enforceSynchronousCommit(implicit
                                                                    conn: Connection
                                                                   ): Unit = {
+      // TODO BH: figure out if Oracle has equivalent to synchronous commit
+      // For now do nothing
       val statement =
-        conn.prepareStatement("SET LOCAL synchronous_commit = 'on'")
+      conn.prepareStatement("SELECT 1 FROM DUAL")
       try {
         statement.execute()
         ()

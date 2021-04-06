@@ -17,7 +17,7 @@ CREATE TABLE parameters
     -- the generated or configured id identifying the ledger
     ledger_id                          NVARCHAR2(1000) not null,
     -- stores the head offset, meant to change with every new ledger entry
-    ledger_end                         NUMBER          null,
+    ledger_end                         BLOB            null,
     participant_id                     NVARCHAR2(1000),
     participant_pruned_up_to_inclusive BLOB,
     external_ledger_end                NVARCHAR2(1000),

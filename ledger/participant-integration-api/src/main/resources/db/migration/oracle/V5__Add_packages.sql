@@ -12,20 +12,20 @@
 CREATE TABLE packages
 (
     -- The unique identifier of the package (the hash of its content)
-    package_id         NVARCHAR2(1000) primary key not null,
+    package_id         VARCHAR2(4000) primary key not null,
     -- Packages are uploaded as DAR files (i.e., in groups)
     -- This field can be used to find out which packages were uploaded together
-    upload_id          NVARCHAR2(1000)             not null,
+    upload_id          NVARCHAR2(1000)            not null,
     -- A human readable description of the package source
     source_description NVARCHAR2(1000),
     -- The size of the archive payload (i.e., the serialized DAML-LF package), in bytes
-    "size"             NUMBER                      not null,
+    "size"             NUMBER                     not null,
     -- The time when the package was added
-    known_since        TIMESTAMP WITH TIME ZONE    not null,
+    known_since        TIMESTAMP                  not null,
     -- The ledger end at the time when the package was added
-    ledger_offset      NUMBER                      not null,
+    ledger_offset      BLOB                       not null,
     -- The DAML-LF archive, serialized using the protobuf message `daml_lf.Archive`.
     --  See also `daml-lf/archive/da/daml_lf.proto`.
-    package            BLOB                        not null
+    package            BLOB                       not null
 );
 

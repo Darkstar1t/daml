@@ -17,6 +17,7 @@ import com.daml.lf.data.Ref
 import com.daml.lf.data.Ref.Party
 import com.daml.lf.value.Value
 import io.grpc.Status.Code
+import oracle.jdbc.OracleConnection
 
 import scala.language.implicitConversions
 
@@ -213,6 +214,16 @@ private[platform] object Conversions {
     }
   }
 
+
+  abstract sealed class OracleArrayToStatement[T](oracleTypeName: String)
+    extends ToStatement[Array[T]] {
+    override def set(s: PreparedStatement, index: Int, v: Array[T]): Unit = {
+      val conn = s.getConnection.asInstanceOf[OracleConnection]
+      val ts = conn.createARRAY(oracleTypeName, v.asInstanceOf[Array[AnyRef]])
+      s.setArray(index, ts)
+    }
+  }
+
   object IntToSmallIntConversions {
     implicit object IntOptionArrayArrayToStatement extends ToStatement[Array[Option[Int]]] {
       override def set(s: PreparedStatement, index: Int, intOpts: Array[Option[Int]]): Unit = {
@@ -229,6 +240,8 @@ private[platform] object Conversions {
   implicit object CharArrayToStatement extends ArrayToStatement[String]("VARCHAR")
 
   implicit object TimestampArrayToStatement extends ArrayToStatement[Timestamp]("TIMESTAMP")
+
+  object VarcharArrayToStatement extends OracleArrayToStatement[String]("VARCHAR_ARRAY")
 
   implicit object InstantArrayToStatement extends ToStatement[Array[Instant]] {
     override def set(s: PreparedStatement, index: Int, v: Array[Instant]): Unit = {

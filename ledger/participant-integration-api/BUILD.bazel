@@ -61,6 +61,7 @@ compile_deps = [
     "@maven//:io_prometheus_simpleclient",
     "@maven//:io_prometheus_simpleclient_dropwizard",
     "@maven//:io_prometheus_simpleclient_httpserver",
+    "@maven//:com_oracle_database_jdbc_ojdbc8"
 ]
 
 scala_compile_deps = [
