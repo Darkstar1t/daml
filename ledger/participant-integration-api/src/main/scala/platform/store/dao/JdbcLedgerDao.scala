@@ -771,10 +771,6 @@ private class JdbcLedgerDao(
     val _ = executeBatchSql(queries.SQL_INSERT_PACKAGE, params)
   }
 
-  private val SQL_GET_PACKAGE_ENTRIES = SQL(
-    "select * from package_entries where ledger_offset>{startExclusive} and ledger_offset<={endInclusive} order by ledger_offset asc {pageSize} offset {queryOffset}"
-  )
-
   private val packageEntryParser: RowParser[(Offset, PackageLedgerEntry)] =
     (offset("ledger_offset") ~
       date("recorded_at") ~
@@ -800,7 +796,7 @@ private class JdbcLedgerDao(
     PaginatingAsyncStream(PageSize) { queryOffset =>
       withEnrichedLoggingContext("queryOffset" -> queryOffset.toString) { implicit loggingContext =>
         dbDispatcher.executeSql(metrics.daml.index.db.loadPackageEntries) { implicit connection =>
-          SQL_GET_PACKAGE_ENTRIES
+          SQL(queries.SQL_GET_PACKAGE_ENTRIES)
             .on(
               "startExclusive" -> startExclusive,
               "endInclusive" -> endInclusive,
@@ -1146,6 +1142,8 @@ private[platform] object JdbcLedgerDao {
 
     protected[JdbcLedgerDao] def SQL_TRUNCATE_TABLES: String
 
+    protected[JdbcLedgerDao] def SQL_GET_PACKAGE_ENTRIES: String
+
     // TODO: Avoid brittleness of error message checks
     protected[JdbcLedgerDao] def DUPLICATE_KEY_ERROR: String
 
@@ -1185,7 +1183,10 @@ private[platform] object JdbcLedgerDao {
         |truncate table party_entries cascade;
       """.stripMargin
 
-    override def limit(numberOfItems: Int): String = s"limit $numberOfItems "
+    override protected[JdbcLedgerDao] val SQL_GET_PACKAGE_ENTRIES =
+      "select * from package_entries where ledger_offset>{startExclusive} and ledger_offset<={endInclusive} order by ledger_offset asc limit 100 offset {queryOffset}"
+
+    override def limit(numberOfItems: Int): String = s"limit $numberOfItems"
 
     override protected[JdbcLedgerDao] def enforceSynchronousCommit(implicit
         conn: Connection
@@ -1235,7 +1236,10 @@ private[platform] object JdbcLedgerDao {
         |set referential_integrity true;
       """.stripMargin
 
-    override def limit(numberOfItems: Int): String = s"limit ${numberOfItems.toString}"
+    override protected[JdbcLedgerDao] val SQL_GET_PACKAGE_ENTRIES =
+      "select * from package_entries where ledger_offset>{startExclusive} and ledger_offset<={endInclusive} order by ledger_offset asc limit 100 offset {queryOffset}"
+
+    override def limit(numberOfItems: Int): String = s"limit $numberOfItems"
 
     /** H2 does not support asynchronous commits */
     override protected[JdbcLedgerDao] def enforceSynchronousCommit(implicit
@@ -1282,7 +1286,11 @@ private[platform] object JdbcLedgerDao {
         |truncate table party_entries cascade;
       """.stripMargin
 
-    override def limit(numberOfItems: Int): String = s"fetch next $numberOfItems rows only "
+    override protected[JdbcLedgerDao] val SQL_GET_PACKAGE_ENTRIES =
+//      "select * from package_entries where (dbms_lob.compare({startExclusive}, ledger_offset) = -1) and (dbms_lob.compare(ledger_offset, {endInclusive}) = -1) order by ledger_offset asc {pageSize} offset {queryOffset}"
+      "select * from package_entries fetch next 100 rows only"
+
+    override def limit(numberOfItems: Int): String = s"fetch next $numberOfItems rows only"
 
     override protected[JdbcLedgerDao] def enforceSynchronousCommit(implicit
                                                                    conn: Connection

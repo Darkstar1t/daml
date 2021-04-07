@@ -10,12 +10,12 @@
 
 CREATE TABLE package_entries
 (
-    ledger_offset    NUMBER primary key not null,
-    recorded_at      timestamp          not null, --with timezone
+    ledger_offset    BLOB            not null,
+    recorded_at      timestamp       not null, --with timezone
     -- SubmissionId for package to be uploaded
     submission_id    NVARCHAR2(1000),
     -- The type of entry, one of 'accept' or 'reject'
-    typ              NVARCHAR2(1000)    not null,
+    typ              NVARCHAR2(1000) not null,
     -- If the type is 'reject', then the rejection reason is set.
     -- Rejection reason is a human-readable description why the change was rejected.
     rejection_reason NVARCHAR2(1000),
