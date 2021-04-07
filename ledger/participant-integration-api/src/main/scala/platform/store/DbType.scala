@@ -38,7 +38,8 @@ private[platform] object DbType {
     extends DbType(
       "oracle",
       "oracle.jdbc.OracleDriver",
-      supportsParallelWrites = false,
+      //TODO we should be able to enable this for Oracle
+      supportsParallelWrites = true,
       //TODO find out if there is an oracle equivalent
       supportsAsynchronousCommits = false,
     )

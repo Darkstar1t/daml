@@ -44,6 +44,7 @@ private[dao] object SqlFunctions {
       s"array_intersection($arrayColumn, array[${format(parties)}])"
   }
 
+  //TODO need to properly implement this for Oracle
   object OracleSqlFunctions extends SqlFunctions {
     override def arrayIntersectionWhereClause(arrayColumn: String, parties: Set[Party]): String =
       s"$arrayColumn && array[${format(parties)}]::varchar[]"

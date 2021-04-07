@@ -4,6 +4,8 @@ package com.daml.platform.store.dao
 
 import java.sql.Connection
 import java.time.Instant
+
+import com.daml.platform.store.DbType.Oracle
 import java.util.{Date, UUID}
 
 import akka.NotUsed
@@ -253,7 +255,7 @@ private class JdbcLedgerDao(
               rejectionReason
           }
 
-        ParametersTable.updateLedgerEnd(offsetStep)
+        ParametersTable.updateLedgerEnd(offsetStep, dbType)
         val savepoint = conn.setSavepoint()
         val configurationBytes = Configuration.encode(configuration).toByteArray
         val typ = if (finalRejectionReason.isEmpty) {
@@ -638,10 +640,21 @@ private class JdbcLedgerDao(
     SQL("""insert into parties(party, display_name, ledger_offset, explicit, is_local)
         |values ({party}, {display_name}, {ledger_offset}, 'true', {is_local})""".stripMargin)
 
-  private val SQL_SELECT_PACKAGES =
-    SQL("""select package_id, source_description, known_since, size
-        |from packages
-        |""".stripMargin)
+  private val SQL_SELECT_PACKAGES = {
+    dbType match {
+      case Oracle =>
+        SQL(
+          """select package_id, source_description, known_since, "size"
+            |from packages
+            |""".stripMargin)
+      case _ =>
+        SQL(
+          """select package_id, source_description, known_since, size
+            |from packages
+            |""".stripMargin)
+    }
+
+  }
 
   private val SQL_SELECT_PACKAGE =
     SQL("""select package
@@ -1233,23 +1246,12 @@ private[platform] object JdbcLedgerDao {
   object OracleQueries extends Queries {
 
     override protected[JdbcLedgerDao] val SQL_INSERT_PACKAGE: String = {
-//      """merge into packages p using dual
-//        |on (p.package_id = {package_id})
-//        |when not matched then
-//        |select {package_id}, {upload_id}, {source_description}, {size}, {known_since}, ledger_end, {package}
-//        |from parameters""".stripMargin
-
-      """insert
-        |/*+  IGNORE_ROW_ON_DUPKEY_INDEX ( PACKAGES ( package_id ) ) */
-        |into packages (package_id, upload_id, source_description, "size", known_since, ledger_offset, package)
-        |(select {package_id}, {upload_id}, {source_description}, {size}, {known_since}, ledger_end, {package}
-        |from parameters)""".stripMargin
-
-      //TODO BH: correct to get proper offset
-//      """insert
-//        |/*+  IGNORE_ROW_ON_DUPKEY_INDEX ( PACKAGES ( package_id ) ) */
-//        |into packages (package_id, upload_id, source_description, "size", known_since, ledger_offset, package)
-//        |VALUES ( {package_id}, {upload_id}, {source_description}, {size}, {known_since}, hextoraw('453d7a34'), {package})""".stripMargin
+            """merge into packages p using (select ledger_end from parameters) par
+              |on (p.package_id = {package_id})
+              |when not matched then
+              |insert (package_id, upload_id, source_description, "size", known_since, ledger_offset, package)
+              |values ({package_id}, {upload_id}, {source_description}, {size}, {known_since}, par.ledger_end, {package})
+              |""".stripMargin
     }
 
     override protected[JdbcLedgerDao] val SQL_INSERT_COMMAND: String =
@@ -1287,14 +1289,8 @@ private[platform] object JdbcLedgerDao {
                                                                   ): Unit = {
       // TODO BH: figure out if Oracle has equivalent to synchronous commit
       // For now do nothing
-      val statement =
-      conn.prepareStatement("SELECT 1 FROM DUAL")
-      try {
-        statement.execute()
-        ()
-      } finally {
-        statement.close()
-      }
+      ()
     }
   }
+
 }

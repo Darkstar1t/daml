@@ -95,8 +95,7 @@ private[dao] object ParametersTable {
           dbType match {
             case Oracle =>
               // dbms_lob compares two binary fields, returns -1 if the first is less than the second
-              SQL"update #$TableName set #$LedgerEndColumnName = $ledgerEnd"
-//              SQL"update #$TableName set #$LedgerEndColumnName = $ledgerEnd where (#$LedgerEndColumnName is null or dbms_lob.compare(#$LedgerEndColumnName, $ledgerEnd) = -1)"
+              SQL"update #$TableName set ledger_end = $ledgerEnd where (#$LedgerEndColumnName is null or dbms_lob.compare(#$LedgerEndColumnName, $ledgerEnd) = -1)"
             case _ =>
               SQL"update #$TableName set #$LedgerEndColumnName = $ledgerEnd where (#$LedgerEndColumnName is null or #$LedgerEndColumnName < $ledgerEnd)"
           }
@@ -115,7 +114,7 @@ private[dao] object ParametersTable {
     }
 
   def updateConfiguration(configuration: Array[Byte])(implicit
-                                                      connection: Connection
+      connection: Connection
   ): Unit =
     discard(SQL"update #$TableName set #$ConfigurationColumnName = $configuration".execute())
 
