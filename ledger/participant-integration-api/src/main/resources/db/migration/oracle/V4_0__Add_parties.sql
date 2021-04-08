@@ -20,7 +20,7 @@ CREATE TABLE parties
     explicit      NUMBER(1, 0)                not null,
     -- For implicitly added parties: the offset of the transaction that introduced the party
     -- For explicitly added parties: the ledger end at the time when the party was added
-    ledger_offset NUMBER,
+    ledger_offset BLOB,
     is_local      NUMBER(1, 0)                not null
 );
 
