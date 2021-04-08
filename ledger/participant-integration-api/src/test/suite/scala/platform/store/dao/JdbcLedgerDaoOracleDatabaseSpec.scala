@@ -3,7 +3,7 @@ package com.daml.platform.store.dao
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class JdbLedgerDaoOracleDatabaseSpec
+class JdbcLedgerDaoOracleDatabaseSpec
   extends AsyncFlatSpec
     with Matchers
     with JdbcLedgerDaoSuite
