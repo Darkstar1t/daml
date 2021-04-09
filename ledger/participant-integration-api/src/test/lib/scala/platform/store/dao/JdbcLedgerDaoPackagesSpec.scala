@@ -53,20 +53,26 @@ private[dao] trait JdbcLedgerDaoPackagesSpec {
     val offset1 = nextOffset()
     val offset2 = nextOffset()
     val offset3 = nextOffset()
-    val accepted1 = PackageLedgerEntry.PackageUploadAccepted(UUID.randomUUID().toString, Instant.EPOCH)
+    val accepted1 =
+      PackageLedgerEntry.PackageUploadAccepted(UUID.randomUUID().toString, Instant.EPOCH)
     for {
       uploadAcceptedResult <- storePackageEntry(
         offset = offset2,
         packageList = packages
           .map(a => a._1 -> a._2.copy(sourceDescription = Some(firstDescription)))
           .take(1),
-        optEntry = Option(accepted1)
+        optEntry = Option(accepted1),
       )
-      rejected1 = PackageLedgerEntry.PackageUploadRejected(UUID.randomUUID().toString, Instant.EPOCH, "some rejection reason")
+      rejected1 = PackageLedgerEntry.PackageUploadRejected(
+        UUID.randomUUID().toString,
+        Instant.EPOCH,
+        "some rejection reason",
+      )
       uploadRejectedResult <- storePackageEntry(
         offset = offset3,
-        packageList = packages.map(a => a._1 -> a._2.copy(sourceDescription = Some(secondDescription))),
-        optEntry = Option(rejected1)
+        packageList =
+          packages.map(a => a._1 -> a._2.copy(sourceDescription = Some(secondDescription))),
+        optEntry = Option(rejected1),
       )
       loadedPackages <- ledgerDao.listLfPackages()
       // returns a Source so need to run with a dummy Sink to get value
@@ -95,7 +101,7 @@ private[dao] trait JdbcLedgerDaoPackagesSpec {
   private def storePackageEntry(
       offset: Offset,
       packageList: List[(DamlLf.Archive, PackageDetails)],
-      optEntry: Option[PackageLedgerEntry] = None
+      optEntry: Option[PackageLedgerEntry] = None,
   ) =
     ledgerDao
       .storePackageEntry(nextOffsetStep(offset), packageList, optEntry)

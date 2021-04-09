@@ -75,20 +75,22 @@ private[dao] object ParametersTable {
     SelectLedgerEnd.as(LedgerEndParser.single)(connection)
 
   /** Updates the ledger end.
-   *
-   * When provided with a (previous, current) ledger end tuple ([[IncrementalOffsetStep]],
-   * the update is performed conditioned by the match between the persisted ledger end and the
-   * provided previous ledger end.
-   *
-   * This mechanism is used to protect callers that cannot provide strong durability guarantees
-   * ([[JdbcLedgerDao]] when used with asynchronous commits on PostgreSQL).
-   *
-   * @param offsetStep The offset step.
-   * @param connection The SQL connection.
-   */
+    *
+    * When provided with a (previous, current) ledger end tuple ([[IncrementalOffsetStep]],
+    * the update is performed conditioned by the match between the persisted ledger end and the
+    * provided previous ledger end.
+    *
+    * This mechanism is used to protect callers that cannot provide strong durability guarantees
+    * ([[JdbcLedgerDao]] when used with asynchronous commits on PostgreSQL).
+    *
+    * @param offsetStep The offset step.
+    * @param connection The SQL connection.
+    */
 
   // TODO BH: this still is not updating correctly
-  def updateLedgerEnd(offsetStep: OffsetStep, dbType: DbType)(implicit connection: Connection): Unit =
+  def updateLedgerEnd(offsetStep: OffsetStep, dbType: DbType)(implicit
+      connection: Connection
+  ): Unit =
     offsetStep match {
       case CurrentOffset(ledgerEnd) =>
         val sqlQuery =
@@ -124,8 +126,8 @@ private[dao] object ParametersTable {
     )(connection)
 
   case class LedgerEndUpdateError(expected: Offset)
-    extends RuntimeException(
-      s"Could not update ledger end. Previous ledger end does not match expected ${expected.toHexString}"
-    )
+      extends RuntimeException(
+        s"Could not update ledger end. Previous ledger end does not match expected ${expected.toHexString}"
+      )
 
 }

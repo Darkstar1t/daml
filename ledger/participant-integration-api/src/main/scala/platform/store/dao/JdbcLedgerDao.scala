@@ -153,7 +153,8 @@ private class JdbcLedgerDao(
     }
 
   private val SQL_GET_CONFIGURATION_ENTRIES = SQL(
-    s"select * from configuration_entries where ledger_offset > {startExclusive} and ledger_offset <= {endInclusive} order by ledger_offset asc ${queries.limit(PageSize)} offset {queryOffset}"
+    s"select * from configuration_entries where ledger_offset > {startExclusive} and ledger_offset <= {endInclusive} order by ledger_offset asc ${queries
+      .limit(PageSize)} offset {queryOffset}"
   )
 
   override def lookupLedgerConfiguration()(implicit
@@ -643,13 +644,11 @@ private class JdbcLedgerDao(
   private val SQL_SELECT_PACKAGES = {
     dbType match {
       case Oracle =>
-        SQL(
-          """select package_id, source_description, known_since, "size"
+        SQL("""select package_id, source_description, known_since, "size"
             |from packages
             |""".stripMargin)
       case _ =>
-        SQL(
-          """select package_id, source_description, known_since, size
+        SQL("""select package_id, source_description, known_since, size
             |from packages
             |""".stripMargin)
     }
@@ -704,9 +703,11 @@ private class JdbcLedgerDao(
       )
 
   private val SQL_INSERT_PACKAGE_ENTRY_ACCEPT =
-    SQL("""insert into package_entries(ledger_offset_hex, ledger_offset, recorded_at, submission_id, typ)
+    SQL(
+      """insert into package_entries(ledger_offset_hex, ledger_offset, recorded_at, submission_id, typ)
         |values ({ledger_offset_hex}, {ledger_offset}, {recorded_at}, {submission_id}, 'accept')
-        |""".stripMargin)
+        |""".stripMargin
+    )
 
   private val SQL_INSERT_PACKAGE_ENTRY_REJECT =
     SQL(
@@ -774,9 +775,8 @@ private class JdbcLedgerDao(
   }
 
   private val packageEntryParser: RowParser[(Offset, PackageLedgerEntry)] =
-    (
-      hexString("ledger_offset_hex") ~
-        offset("ledger_offset") ~
+    (hexString("ledger_offset_hex") ~
+      offset("ledger_offset") ~
       date("recorded_at") ~
       ledgerString("submission_id").? ~
       str("typ") ~
@@ -1251,7 +1251,7 @@ private[platform] object JdbcLedgerDao {
   object OracleQueries extends Queries {
 
     override protected[JdbcLedgerDao] val SQL_INSERT_PACKAGE: String = {
-            """merge into packages p using (select ledger_end from parameters) par
+      """merge into packages p using (select ledger_end from parameters) par
               |on (p.package_id = {package_id})
               |when not matched then
               |insert (package_id, upload_id, source_description, "size", known_since, ledger_offset, package)
@@ -1295,8 +1295,8 @@ private[platform] object JdbcLedgerDao {
     override def limit(numberOfItems: Int): String = s"fetch next $numberOfItems rows only"
 
     override protected[JdbcLedgerDao] def enforceSynchronousCommit(implicit
-                                                                   conn: Connection
-                                                                  ): Unit = {
+        conn: Connection
+    ): Unit = {
       // TODO BH: figure out if Oracle has equivalent to synchronous commit
       // For now do nothing
       ()

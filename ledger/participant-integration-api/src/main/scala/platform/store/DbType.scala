@@ -35,14 +35,14 @@ private[platform] object DbType {
       )
 
   object Oracle
-    extends DbType(
-      "oracle",
-      "oracle.jdbc.OracleDriver",
-      //TODO we should be able to enable this for Oracle
-      supportsParallelWrites = true,
-      //TODO find out if there is an oracle equivalent
-      supportsAsynchronousCommits = false,
-    )
+      extends DbType(
+        "oracle",
+        "oracle.jdbc.OracleDriver",
+        //TODO we should be able to enable this for Oracle
+        supportsParallelWrites = true,
+        //TODO find out if there is an oracle equivalent
+        supportsAsynchronousCommits = false,
+      )
 
   def jdbcType(jdbcUrl: String): DbType = jdbcUrl match {
     case h2 if h2.startsWith("jdbc:h2:") => H2Database

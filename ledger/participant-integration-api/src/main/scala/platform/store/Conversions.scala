@@ -228,9 +228,8 @@ private[platform] object Conversions {
     }
   }
 
-
   abstract sealed class OracleArrayToStatement[T](oracleTypeName: String)
-    extends ToStatement[Array[T]] {
+      extends ToStatement[Array[T]] {
     override def set(s: PreparedStatement, index: Int, v: Array[T]): Unit = {
       val conn = s.getConnection.asInstanceOf[OracleConnection]
       val ts = conn.createARRAY(oracleTypeName, v.asInstanceOf[Array[AnyRef]])

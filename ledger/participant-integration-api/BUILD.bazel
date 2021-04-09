@@ -78,7 +78,7 @@ runtime_deps = [
     "@maven//:ch_qos_logback_logback_classic",
     "@maven//:com_h2database_h2",
     "@maven//:org_postgresql_postgresql",
-    "@maven//:com_oracle_database_jdbc_ojdbc8"
+    "@maven//:com_oracle_database_jdbc_ojdbc8",
 ]
 
 da_scala_library(
