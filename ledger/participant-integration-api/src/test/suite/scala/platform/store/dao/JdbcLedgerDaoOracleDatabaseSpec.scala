@@ -17,7 +17,7 @@ class JdbcLedgerDaoOracleDatabaseSpec
 //    with JdbcLedgerDaoConfigurationSpec
 //    with JdbcLedgerDaoContractsSpec
 //    with JdbcLedgerDaoDivulgenceSpec
-//    with JdbcLedgerDaoPartiesSpec
+    with JdbcLedgerDaoPartiesSpec
 //    with JdbcLedgerDaoTransactionsSpec
 //    with JdbcLedgerDaoTransactionTreesSpec
 //    with JdbcLedgerDaoTransactionsWriterSpec

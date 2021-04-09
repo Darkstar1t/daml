@@ -332,6 +332,7 @@ private class JdbcLedgerDao(
                 "party" -> partyDetails.party,
                 "display_name" -> partyDetails.displayName,
                 "ledger_offset" -> offsetStep.offset,
+                "explicit" -> true,
                 "is_local" -> partyDetails.isLocal,
               )
               .execute()
@@ -639,7 +640,7 @@ private class JdbcLedgerDao(
 
   private val SQL_INSERT_PARTY =
     SQL("""insert into parties(party, display_name, ledger_offset, explicit, is_local)
-        |values ({party}, {display_name}, {ledger_offset}, 'true', {is_local})""".stripMargin)
+        |values ({party}, {display_name}, {ledger_offset}, {explicit}, {is_local})""".stripMargin)
 
   private val SQL_SELECT_PACKAGES = {
     dbType match {
@@ -1272,7 +1273,7 @@ private[platform] object JdbcLedgerDao {
 """.stripMargin
 
     override protected[JdbcLedgerDao] val DUPLICATE_KEY_ERROR: String =
-      "duplicate key"
+      "unique constraint"
 
     override protected[JdbcLedgerDao] val SQL_TRUNCATE_TABLES: String =
       """truncate table configuration_entries cascade;

@@ -7,6 +7,7 @@ import java.sql.{PreparedStatement, Timestamp}
 import java.time.Instant
 import java.util.Date
 
+import anorm.Column.nonNull
 import anorm._
 import com.daml.ledger.EventId
 import com.daml.ledger.api.domain
@@ -56,6 +57,17 @@ private[platform] object Conversions {
 
   def party(columnName: String): RowParser[Ref.Party] =
     SqlParser.get[Ref.Party](columnName)(columnToParty)
+
+  // booleans are stored as BigDecimal 0/1 in oracle, need to do implicit conversion when reading from db
+  implicit val bigDecimalColumnToBoolean: Column[Boolean] = nonNull { (value, meta) =>
+    val MetaDataItem(qualified, _, _) = meta
+    value match {
+      case bd: java.math.BigDecimal => Right(bd.equals(new java.math.BigDecimal(1)))
+      case bool: Boolean => Right(bool)
+      case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: to Boolean for column $qualified"))
+    }
+  }
+
 
   // PackageId
 
