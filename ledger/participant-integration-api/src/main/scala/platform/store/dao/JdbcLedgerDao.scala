@@ -348,6 +348,7 @@ private class JdbcLedgerDao(
         case PartyLedgerEntry.AllocationRejected(submissionId, recordTime, reason) =>
           SQL_INSERT_PARTY_ENTRY_REJECT
             .on(
+              "ledger_offset_hex" -> offsetStep.offset.toHexString,
               "ledger_offset" -> offsetStep.offset,
               "recorded_at" -> recordTime,
               "submission_id" -> submissionId,
@@ -1150,8 +1151,8 @@ private[platform] object JdbcLedgerDao {
 
     protected[JdbcLedgerDao] def SQL_GET_PARTY_ENTRIES: String =
       """select * from party_entries
-        |where ledger_offset>{startExclusive} and ledger_offset<={endInclusive}
-        |order by ledger_offset asc {pageSize} offset {queryOffset}""".stripMargin
+        |where ledger_offset_hex>{startExclusive} and ledger_offset_hex<={endInclusive}
+        |order by ledger_offset_hex asc limit 100 offset {queryOffset}""".stripMargin
 
     // TODO: Avoid brittleness of error message checks
     protected[JdbcLedgerDao] def DUPLICATE_KEY_ERROR: String
