@@ -10,8 +10,8 @@
 CREATE TABLE party_entries
 (
     -- The ledger end at the time when the party allocation was added
-    -- Cannot have a binary/BLOB field as primary key on oracle
-    ledger_offset    NVARCHAR2(1000) primary key not null,
+    ledger_offset_hex NVARCHAR2(1000) primary key not null,
+    ledger_offset    BLOB not null,
     recorded_at      timestamp                   not null, --with timezone
     -- SubmissionId for the party allocation
     submission_id    NVARCHAR2(1000),

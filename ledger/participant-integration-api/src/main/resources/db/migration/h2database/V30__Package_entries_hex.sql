@@ -9,4 +9,4 @@
 ---------------------------------------------------------------------------------------------------
 
 ALTER TABLE package_entries ADD COLUMN ledger_offset_hex varchar;
--- ALTER TABLE party_entries ADD COLUMN ledger_offset_hex TYPE BINARY;
+ALTER TABLE party_entries ADD COLUMN ledger_offset_hex varchar;

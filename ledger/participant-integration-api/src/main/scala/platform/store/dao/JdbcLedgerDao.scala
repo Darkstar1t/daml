@@ -293,15 +293,15 @@ private class JdbcLedgerDao(
 
   private val SQL_INSERT_PARTY_ENTRY_ACCEPT =
     SQL(
-      """insert into party_entries(ledger_offset, recorded_at, submission_id, typ, party, display_name, is_local)
-        |values ({ledger_offset}, {recorded_at}, {submission_id}, 'accept', {party}, {display_name}, {is_local})
+      """insert into party_entries(ledger_offset_hex, ledger_offset, recorded_at, submission_id, typ, party, display_name, is_local)
+        |values ({ledger_offset_hex}, {ledger_offset}, {recorded_at}, {submission_id}, 'accept', {party}, {display_name}, {is_local})
         |""".stripMargin
     )
 
   private val SQL_INSERT_PARTY_ENTRY_REJECT =
     SQL(
-      """insert into party_entries(ledger_offset, recorded_at, submission_id, typ, rejection_reason)
-        |values ({ledger_offset}, {recorded_at}, {submission_id}, 'reject', {rejection_reason})
+      """insert into party_entries(ledger_offset_hex, ledger_offset, recorded_at, submission_id, typ, rejection_reason)
+        |values ({ledger_offset_hex}, {ledger_offset}, {recorded_at}, {submission_id}, 'reject', {rejection_reason})
         |""".stripMargin
     )
 
@@ -360,10 +360,6 @@ private class JdbcLedgerDao(
 
   }
 
-  private val SQL_GET_PARTY_ENTRIES = SQL(
-    "select * from party_entries where ledger_offset>{startExclusive} and ledger_offset<={endInclusive} order by ledger_offset asc {pageSize} offset {queryOffset}"
-  )
-
   private val partyEntryParser: RowParser[(Offset, PartyLedgerEntry)] =
     (offset("ledger_offset") ~
       date("recorded_at") ~
@@ -417,7 +413,7 @@ private class JdbcLedgerDao(
     PaginatingAsyncStream(PageSize) { queryOffset =>
       withEnrichedLoggingContext("queryOffset" -> queryOffset.toString) { implicit loggingContext =>
         dbDispatcher.executeSql(metrics.daml.index.db.loadPartyEntries) { implicit connection =>
-          SQL_GET_PARTY_ENTRIES
+          SQL(queries.SQL_GET_PARTY_ENTRIES)
             .on(
               "startExclusive" -> startExclusive,
               "endInclusive" -> endInclusive,
@@ -1152,6 +1148,11 @@ private[platform] object JdbcLedgerDao {
         |where ledger_offset_hex>{startExclusive} and ledger_offset_hex<={endInclusive}
         |order by ledger_offset_hex asc limit 100 offset {queryOffset}""".stripMargin
 
+    protected[JdbcLedgerDao] def SQL_GET_PARTY_ENTRIES: String =
+      """select * from party_entries
+        |where ledger_offset>{startExclusive} and ledger_offset<={endInclusive}
+        |order by ledger_offset asc {pageSize} offset {queryOffset}""".stripMargin
+
     // TODO: Avoid brittleness of error message checks
     protected[JdbcLedgerDao] def DUPLICATE_KEY_ERROR: String
 
@@ -1290,6 +1291,11 @@ private[platform] object JdbcLedgerDao {
 
     override protected[JdbcLedgerDao] val SQL_GET_PACKAGE_ENTRIES: String =
       """select * from package_entries
+        |where ledger_offset_hex>{startExclusive} and ledger_offset_hex<={endInclusive}
+        |order by ledger_offset_hex asc offset {queryOffset} rows fetch next 100 rows only""".stripMargin
+
+    override protected[JdbcLedgerDao] val SQL_GET_PARTY_ENTRIES: String =
+      """select * from party_entries
         |where ledger_offset_hex>{startExclusive} and ledger_offset_hex<={endInclusive}
         |order by ledger_offset_hex asc offset {queryOffset} rows fetch next 100 rows only""".stripMargin
 
