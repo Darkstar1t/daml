@@ -704,14 +704,14 @@ private class JdbcLedgerDao(
       )
 
   private val SQL_INSERT_PACKAGE_ENTRY_ACCEPT =
-    SQL("""insert into package_entries(ledger_offset, recorded_at, submission_id, typ)
-        |values ({ledger_offset}, {recorded_at}, {submission_id}, 'accept')
+    SQL("""insert into package_entries(ledger_offset_hex, ledger_offset, recorded_at, submission_id, typ)
+        |values ({ledger_offset_hex}, {ledger_offset}, {recorded_at}, {submission_id}, 'accept')
         |""".stripMargin)
 
   private val SQL_INSERT_PACKAGE_ENTRY_REJECT =
     SQL(
-      """insert into package_entries(ledger_offset, recorded_at, submission_id, typ, rejection_reason)
-        |values ({ledger_offset}, {recorded_at}, {submission_id}, 'reject', {rejection_reason})
+      """insert into package_entries(ledger_offset_hex, ledger_offset, recorded_at, submission_id, typ, rejection_reason)
+        |values ({ledger_offset_hex}, {ledger_offset}, {recorded_at}, {submission_id}, 'reject', {rejection_reason})
         |""".stripMargin
     )
 
@@ -735,6 +735,7 @@ private class JdbcLedgerDao(
           case PackageLedgerEntry.PackageUploadAccepted(submissionId, recordTime) =>
             SQL_INSERT_PACKAGE_ENTRY_ACCEPT
               .on(
+                "ledger_offset_hex" -> offsetStep.offset.toHexString,
                 "ledger_offset" -> offsetStep.offset,
                 "recorded_at" -> recordTime,
                 "submission_id" -> submissionId,
@@ -743,6 +744,7 @@ private class JdbcLedgerDao(
           case PackageLedgerEntry.PackageUploadRejected(submissionId, recordTime, reason) =>
             SQL_INSERT_PACKAGE_ENTRY_REJECT
               .on(
+                "ledger_offset_hex" -> offsetStep.offset.toHexString,
                 "ledger_offset" -> offsetStep.offset,
                 "recorded_at" -> recordTime,
                 "submission_id" -> submissionId,
@@ -772,17 +774,19 @@ private class JdbcLedgerDao(
   }
 
   private val packageEntryParser: RowParser[(Offset, PackageLedgerEntry)] =
-    (offset("ledger_offset") ~
+    (
+      hexString("ledger_offset_hex") ~
+        offset("ledger_offset") ~
       date("recorded_at") ~
       ledgerString("submission_id").? ~
       str("typ") ~
       str("rejection_reason").?)
       .map(flatten)
       .map {
-        case (offset, recordTime, Some(submissionId), `acceptType`, None) =>
+        case (_, offset, recordTime, Some(submissionId), `acceptType`, None) =>
           offset ->
             PackageLedgerEntry.PackageUploadAccepted(submissionId, recordTime.toInstant)
-        case (offset, recordTime, Some(submissionId), `rejectType`, Some(reason)) =>
+        case (_, offset, recordTime, Some(submissionId), `rejectType`, Some(reason)) =>
           offset ->
             PackageLedgerEntry.PackageUploadRejected(submissionId, recordTime.toInstant, reason)
         case invalidRow =>
@@ -798,8 +802,8 @@ private class JdbcLedgerDao(
         dbDispatcher.executeSql(metrics.daml.index.db.loadPackageEntries) { implicit connection =>
           SQL(queries.SQL_GET_PACKAGE_ENTRIES)
             .on(
-              "startExclusive" -> startExclusive,
-              "endInclusive" -> endInclusive,
+              "startExclusive" -> startExclusive.toHexString,
+              "endInclusive" -> endInclusive.toHexString,
               "pageSize" -> queries.limit(PageSize),
               "queryOffset" -> queryOffset,
             )
@@ -1142,7 +1146,10 @@ private[platform] object JdbcLedgerDao {
 
     protected[JdbcLedgerDao] def SQL_TRUNCATE_TABLES: String
 
-    protected[JdbcLedgerDao] def SQL_GET_PACKAGE_ENTRIES: String
+    protected[JdbcLedgerDao] def SQL_GET_PACKAGE_ENTRIES: String =
+      """select * from package_entries
+        |where ledger_offset_hex>{startExclusive} and ledger_offset_hex<={endInclusive}
+        |order by ledger_offset_hex asc limit 100 offset {queryOffset}""".stripMargin
 
     // TODO: Avoid brittleness of error message checks
     protected[JdbcLedgerDao] def DUPLICATE_KEY_ERROR: String
@@ -1182,9 +1189,6 @@ private[platform] object JdbcLedgerDao {
         |truncate table parties cascade;
         |truncate table party_entries cascade;
       """.stripMargin
-
-    override protected[JdbcLedgerDao] val SQL_GET_PACKAGE_ENTRIES =
-      "select * from package_entries where ledger_offset>{startExclusive} and ledger_offset<={endInclusive} order by ledger_offset asc limit 100 offset {queryOffset}"
 
     override def limit(numberOfItems: Int): String = s"limit $numberOfItems"
 
@@ -1236,9 +1240,6 @@ private[platform] object JdbcLedgerDao {
         |set referential_integrity true;
       """.stripMargin
 
-    override protected[JdbcLedgerDao] val SQL_GET_PACKAGE_ENTRIES =
-      "select * from package_entries where ledger_offset>{startExclusive} and ledger_offset<={endInclusive} order by ledger_offset asc limit 100 offset {queryOffset}"
-
     override def limit(numberOfItems: Int): String = s"limit $numberOfItems"
 
     /** H2 does not support asynchronous commits */
@@ -1286,9 +1287,10 @@ private[platform] object JdbcLedgerDao {
         |truncate table party_entries cascade;
       """.stripMargin
 
-    override protected[JdbcLedgerDao] val SQL_GET_PACKAGE_ENTRIES =
-//      "select * from package_entries where (dbms_lob.compare({startExclusive}, ledger_offset) = -1) and (dbms_lob.compare(ledger_offset, {endInclusive}) = -1) order by ledger_offset asc {pageSize} offset {queryOffset}"
-      "select * from package_entries fetch next 100 rows only"
+    override protected[JdbcLedgerDao] val SQL_GET_PACKAGE_ENTRIES: String =
+      """select * from package_entries
+        |where ledger_offset_hex>{startExclusive} and ledger_offset_hex<={endInclusive}
+        |order by ledger_offset_hex asc offset {queryOffset} rows fetch next 100 rows only""".stripMargin
 
     override def limit(numberOfItems: Int): String = s"fetch next $numberOfItems rows only"
 
