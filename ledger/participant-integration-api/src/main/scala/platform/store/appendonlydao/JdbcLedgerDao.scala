@@ -912,8 +912,8 @@ private[platform] object JdbcLedgerDao {
 
     /** H2 does not support asynchronous commits */
     override protected[JdbcLedgerDao] def enforceSynchronousCommit(implicit
-                                                                   conn: Connection
-                                                                  ): Unit = ()
+        conn: Connection
+    ): Unit = ()
   }
 
   def deduplicationKey(

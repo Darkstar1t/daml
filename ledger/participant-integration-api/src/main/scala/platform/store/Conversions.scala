@@ -68,7 +68,6 @@ private[platform] object Conversions {
     }
   }
 
-
   // PackageId
 
   implicit val columnToPackageId: Column[Ref.PackageId] =

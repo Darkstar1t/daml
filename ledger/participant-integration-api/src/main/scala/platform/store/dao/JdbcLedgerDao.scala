@@ -348,7 +348,6 @@ private class JdbcLedgerDao(
         case PartyLedgerEntry.AllocationRejected(submissionId, recordTime, reason) =>
           SQL_INSERT_PARTY_ENTRY_REJECT
             .on(
-              "ledger_offset_hex" -> offsetStep.offset.toHexString,
               "ledger_offset" -> offsetStep.offset,
               "recorded_at" -> recordTime,
               "submission_id" -> submissionId,

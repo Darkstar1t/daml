@@ -56,19 +56,31 @@ private[dao] trait JdbcLedgerDaoPartiesSpec {
     )
     val acceptedSubmissionId = UUID.randomUUID().toString
     val acceptedRecordTime = Instant.now()
-    val accepted1 = PartyLedgerEntry.AllocationAccepted(Some(acceptedSubmissionId), acceptedRecordTime, accepted)
+    val accepted1 =
+      PartyLedgerEntry.AllocationAccepted(Some(acceptedSubmissionId), acceptedRecordTime, accepted)
     val rejectedSubmissionId = UUID.randomUUID().toString
     val rejectedRecordTime = Instant.now()
-    val rejected1 = PartyLedgerEntry.AllocationRejected(rejectedSubmissionId, rejectedRecordTime, rejectionReason)
+    val rejected1 =
+      PartyLedgerEntry.AllocationRejected(rejectedSubmissionId, rejectedRecordTime, rejectionReason)
     val offset1 = nextOffset()
     val offset2 = nextOffset()
     val offset3 = nextOffset()
     val offset4 = nextOffset()
 
     for {
-      response1 <- storePartyEntry(accepted, offset2, Some(acceptedSubmissionId), acceptedRecordTime)
+      response1 <- storePartyEntry(
+        accepted,
+        offset2,
+        Some(acceptedSubmissionId),
+        acceptedRecordTime,
+      )
       _ = response1 should be(PersistenceResponse.Ok)
-      response2 <- storeRejectedPartyEntry(rejectionReason, offset3, rejectedSubmissionId, rejectedRecordTime)
+      response2 <- storeRejectedPartyEntry(
+        rejectionReason,
+        offset3,
+        rejectedSubmissionId,
+        rejectedRecordTime,
+      )
       _ = response2 should be(PersistenceResponse.Ok)
       parties <- ledgerDao.getParties(Seq(acceptedParty, nonExistentParty))
       partyEntries <- ledgerDao.getPartyEntries(offset1, offset4).take(4).runWith(Sink.seq)
@@ -198,7 +210,7 @@ private[dao] trait JdbcLedgerDaoPartiesSpec {
     ledgerDao
       .storePartyEntry(
         OffsetStep(previousOffset.get(), offset),
-          PartyLedgerEntry.AllocationAccepted(submissionIdOpt, recordTime, partyDetails),
+        PartyLedgerEntry.AllocationAccepted(submissionIdOpt, recordTime, partyDetails),
       )
       .map { response =>
         previousOffset.set(Some(offset))
