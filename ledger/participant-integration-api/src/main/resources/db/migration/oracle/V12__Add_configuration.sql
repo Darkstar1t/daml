@@ -11,16 +11,16 @@
 -- Table for storing a log of ledger configuration changes and rejections.
 CREATE TABLE configuration_entries
 (
-    ledger_offset    NUMBER primary key not null,
-    recorded_at      timestamp          not null, -- with time zone
+    ledger_offset    BLOB            not null,
+    recorded_at      timestamp       not null, -- with time zone
 
-    submission_id    NVARCHAR2(1000)    not null,
+    submission_id    NVARCHAR2(1000) not null,
     -- The type of entry, one of 'accept' or 'reject'.
-    typ              NVARCHAR2(1000)    not null,
+    typ              NVARCHAR2(1000) not null,
     -- The configuration that was proposed and either accepted or rejected depending on the type.
     -- Encoded according to participant-state/protobuf/ledger_configuration.proto.
     -- Add the current configuration column to parameters.
-    configuration    BLOB               not null,
+    configuration    BLOB            not null,
 
     -- If the type is 'rejection', then the rejection reason is set.
     -- Rejection reason is a human-readable description why the change was rejected.
