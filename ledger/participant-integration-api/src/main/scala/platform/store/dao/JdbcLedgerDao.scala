@@ -702,15 +702,15 @@ private class JdbcLedgerDao(
 
   private val SQL_INSERT_PACKAGE_ENTRY_ACCEPT =
     SQL(
-      """insert into package_entries(ledger_offset_hex, ledger_offset, recorded_at, submission_id, typ)
-        |values ({ledger_offset_hex}, {ledger_offset}, {recorded_at}, {submission_id}, 'accept')
+      """insert into package_entries(ledger_offset, recorded_at, submission_id, typ)
+        |values ({ledger_offset}, {recorded_at}, {submission_id}, 'accept')
         |""".stripMargin
     )
 
   private val SQL_INSERT_PACKAGE_ENTRY_REJECT =
     SQL(
-      """insert into package_entries(ledger_offset_hex, ledger_offset, recorded_at, submission_id, typ, rejection_reason)
-        |values ({ledger_offset_hex}, {ledger_offset}, {recorded_at}, {submission_id}, 'reject', {rejection_reason})
+      """insert into package_entries(ledger_offset, recorded_at, submission_id, typ, rejection_reason)
+        |values ({ledger_offset}, {recorded_at}, {submission_id}, 'reject', {rejection_reason})
         |""".stripMargin
     )
 
@@ -734,7 +734,6 @@ private class JdbcLedgerDao(
           case PackageLedgerEntry.PackageUploadAccepted(submissionId, recordTime) =>
             SQL_INSERT_PACKAGE_ENTRY_ACCEPT
               .on(
-                "ledger_offset_hex" -> offsetStep.offset.toHexString,
                 "ledger_offset" -> offsetStep.offset,
                 "recorded_at" -> recordTime,
                 "submission_id" -> submissionId,
@@ -743,7 +742,6 @@ private class JdbcLedgerDao(
           case PackageLedgerEntry.PackageUploadRejected(submissionId, recordTime, reason) =>
             SQL_INSERT_PACKAGE_ENTRY_REJECT
               .on(
-                "ledger_offset_hex" -> offsetStep.offset.toHexString,
                 "ledger_offset" -> offsetStep.offset,
                 "recorded_at" -> recordTime,
                 "submission_id" -> submissionId,
@@ -773,18 +771,17 @@ private class JdbcLedgerDao(
   }
 
   private val packageEntryParser: RowParser[(Offset, PackageLedgerEntry)] =
-    (hexString("ledger_offset_hex") ~
-      offset("ledger_offset") ~
+    (offset("ledger_offset") ~
       date("recorded_at") ~
       ledgerString("submission_id").? ~
       str("typ") ~
       str("rejection_reason").?)
       .map(flatten)
       .map {
-        case (_, offset, recordTime, Some(submissionId), `acceptType`, None) =>
+        case (offset, recordTime, Some(submissionId), `acceptType`, None) =>
           offset ->
             PackageLedgerEntry.PackageUploadAccepted(submissionId, recordTime.toInstant)
-        case (_, offset, recordTime, Some(submissionId), `rejectType`, Some(reason)) =>
+        case (offset, recordTime, Some(submissionId), `rejectType`, Some(reason)) =>
           offset ->
             PackageLedgerEntry.PackageUploadRejected(submissionId, recordTime.toInstant, reason)
         case invalidRow =>
@@ -1146,8 +1143,8 @@ private[platform] object JdbcLedgerDao {
 
     protected[JdbcLedgerDao] def SQL_GET_PACKAGE_ENTRIES: String =
       """select * from package_entries
-        |where ledger_offset_hex>{startExclusive} and ledger_offset_hex<={endInclusive}
-        |order by ledger_offset_hex asc limit {pageSize} offset {queryOffset}""".stripMargin
+        |where ledger_offset>{startExclusive} and ledger_offset<={endInclusive}
+        |order by ledger_offset asc limit {pageSize} offset {queryOffset}""".stripMargin
 
     protected[JdbcLedgerDao] def SQL_GET_PARTY_ENTRIES: String =
       """select * from party_entries
@@ -1291,9 +1288,10 @@ private[platform] object JdbcLedgerDao {
       """.stripMargin
 
     override protected[JdbcLedgerDao] val SQL_GET_PACKAGE_ENTRIES: String =
-      """select * from package_entries
-        |where ledger_offset_hex>{startExclusive} and ledger_offset_hex<={endInclusive}
-        |order by ledger_offset_hex asc offset {queryOffset} rows fetch next {pageSize} rows only""".stripMargin
+      """select * from package_entries where
+        |(dbms_lob.compare(ledger_offset, {startExclusive}) = 1) and
+        |(dbms_lob.compare(ledger_offset, {endInclusive}) IN (0, -1))
+        |offset {queryOffset} rows fetch next {pageSize} rows only""".stripMargin
 
     override protected[JdbcLedgerDao] val SQL_GET_PARTY_ENTRIES: String =
       """select * from party_entries where

@@ -10,7 +10,6 @@
 
 CREATE TABLE package_entries
 (
-    ledger_offset_hex NVARCHAR2(1000) primary key not null,
     ledger_offset    BLOB            not null,
     recorded_at      timestamp       not null, --with timezone
     -- SubmissionId for package to be uploaded
