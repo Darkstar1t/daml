@@ -3,11 +3,12 @@
 
 package com.daml.platform.indexer.parallel
 
-import java.sql.{DriverManager, PreparedStatement, ResultSet}
+import java.sql.{Connection, DriverManager, PreparedStatement, ResultSet}
 
 import com.daml.ledger.participant.state.v1.Offset
 
 import scala.collection.mutable
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
 trait PostgresDAO {
@@ -16,11 +17,13 @@ trait PostgresDAO {
   def updateParams(ledgerEnd: Offset, eventSeqId: Long, configuration: Option[Array[Byte]]): Unit
 
   def initialize: (Option[Offset], Option[Long])
+
+  def connection: Connection
 }
 
 case class JDBCPostgresDAO(jdbcUrl: String) extends PostgresDAO with AutoCloseable {
 
-  private val connection = {
+  val connection: Connection = {
     val c = DriverManager.getConnection(jdbcUrl)
     c.setAutoCommit(false)
 
@@ -352,122 +355,128 @@ case class JDBCPostgresDAO(jdbcUrl: String) extends PostgresDAO with AutoCloseab
       ()
     }
 
-    rawDBBatchPostgreSQLV1.commandCompletionsBatch.foreach(batch =>
-      execute(
-        preparedInsertCommandCompletionBatch,
-        batch.completion_offset,
-        batch.record_time,
-        batch.application_id,
-        batch.submitters,
-        batch.command_id,
-        batch.transaction_id,
-        batch.status_code,
-        batch.status_message,
+    try {
+      rawDBBatchPostgreSQLV1.commandCompletionsBatch.foreach(batch =>
+        execute(
+          preparedInsertCommandCompletionBatch,
+          batch.completion_offset,
+          batch.record_time,
+          batch.application_id,
+          batch.submitters,
+          batch.command_id,
+          batch.transaction_id,
+          batch.status_code,
+          batch.status_message,
+        )
       )
-    )
 
-    rawDBBatchPostgreSQLV1.configurationEntriesBatch.foreach(batch =>
-      execute(
-        preparedInsertConfigurationEntryBatch,
-        batch.ledger_offset,
-        batch.recorded_at,
-        batch.submission_id,
-        batch.typ,
-        batch.configuration,
-        batch.rejection_reason,
+      rawDBBatchPostgreSQLV1.configurationEntriesBatch.foreach(batch =>
+        execute(
+          preparedInsertConfigurationEntryBatch,
+          batch.ledger_offset,
+          batch.recorded_at,
+          batch.submission_id,
+          batch.typ,
+          batch.configuration,
+          batch.rejection_reason,
+        )
       )
-    )
 
-    rawDBBatchPostgreSQLV1.eventsBatch.foreach(batch =>
-      execute(
-        preparedInsertEventsBatch,
-        batch.event_kind,
-        batch.event_id,
-        batch.event_offset,
-        batch.contract_id,
-        batch.transaction_id,
-        batch.ledger_effective_time,
-        batch.node_index,
-        batch.command_id,
-        batch.workflow_id,
-        batch.application_id,
-        batch.submitters,
-        batch.create_argument,
-        batch.create_signatories,
-        batch.create_observers,
-        batch.create_agreement_text,
-        batch.create_key_value,
-        batch.create_key_hash,
-        batch.exercise_choice,
-        batch.exercise_argument,
-        batch.exercise_result,
-        batch.exercise_actors,
-        batch.exercise_child_event_ids,
-        batch.template_id,
-        batch.flat_event_witnesses,
-        batch.tree_event_witnesses,
-        batch.event_sequential_id,
-        batch.create_argument_compression,
-        batch.create_key_value_compression,
-        batch.exercise_argument_compression,
-        batch.exercise_result_compression,
+      rawDBBatchPostgreSQLV1.eventsBatch.foreach(batch =>
+        execute(
+          preparedInsertEventsBatch,
+          batch.event_kind,
+          batch.event_id,
+          batch.event_offset,
+          batch.contract_id,
+          batch.transaction_id,
+          batch.ledger_effective_time,
+          batch.node_index,
+          batch.command_id,
+          batch.workflow_id,
+          batch.application_id,
+          batch.submitters,
+          batch.create_argument,
+          batch.create_signatories,
+          batch.create_observers,
+          batch.create_agreement_text,
+          batch.create_key_value,
+          batch.create_key_hash,
+          batch.exercise_choice,
+          batch.exercise_argument,
+          batch.exercise_result,
+          batch.exercise_actors,
+          batch.exercise_child_event_ids,
+          batch.template_id,
+          batch.flat_event_witnesses,
+          batch.tree_event_witnesses,
+          batch.event_sequential_id,
+          batch.create_argument_compression,
+          batch.create_key_value_compression,
+          batch.exercise_argument_compression,
+          batch.exercise_result_compression,
+        )
       )
-    )
 
-    rawDBBatchPostgreSQLV1.packageEntriesBatch.foreach(batch =>
-      execute(
-        preparedInsertPackageEntryBatch,
-        batch.ledger_offset,
-        batch.recorded_at,
-        batch.submission_id,
-        batch.typ,
-        batch.rejection_reason,
+      rawDBBatchPostgreSQLV1.packageEntriesBatch.foreach(batch =>
+        execute(
+          preparedInsertPackageEntryBatch,
+          batch.ledger_offset,
+          batch.recorded_at,
+          batch.submission_id,
+          batch.typ,
+          batch.rejection_reason,
+        )
       )
-    )
 
-    rawDBBatchPostgreSQLV1.packagesBatch.foreach(batch =>
-      execute(
-        preparedInsertPackageBatch,
-        batch.package_id,
-        batch.upload_id,
-        batch.source_description,
-        batch.size,
-        batch.known_since,
-        batch.ledger_offset,
-        batch._package,
+      rawDBBatchPostgreSQLV1.packagesBatch.foreach(batch =>
+        execute(
+          preparedInsertPackageBatch,
+          batch.package_id,
+          batch.upload_id,
+          batch.source_description,
+          batch.size,
+          batch.known_since,
+          batch.ledger_offset,
+          batch._package,
+        )
       )
-    )
 
-    rawDBBatchPostgreSQLV1.partiesBatch.foreach(batch =>
-      execute(
-        preparedInsertPartyBatch,
-        batch.party,
-        batch.display_name,
-        batch.explicit,
-        batch.ledger_offset,
-        batch.is_local,
+      rawDBBatchPostgreSQLV1.partiesBatch.foreach(batch =>
+        execute(
+          preparedInsertPartyBatch,
+          batch.party,
+          batch.display_name,
+          batch.explicit,
+          batch.ledger_offset,
+          batch.is_local,
+        )
       )
-    )
 
-    rawDBBatchPostgreSQLV1.partyEntriesBatch.foreach(batch =>
-      execute(
-        preparedInsertPartyEntryBatch,
-        batch.ledger_offset,
-        batch.recorded_at,
-        batch.submission_id,
-        batch.party,
-        batch.display_name,
-        batch.typ,
-        batch.rejection_reason,
-        batch.is_local,
+      rawDBBatchPostgreSQLV1.partyEntriesBatch.foreach(batch =>
+        execute(
+          preparedInsertPartyEntryBatch,
+          batch.ledger_offset,
+          batch.recorded_at,
+          batch.submission_id,
+          batch.party,
+          batch.display_name,
+          batch.typ,
+          batch.rejection_reason,
+          batch.is_local,
+        )
       )
-    )
 
-    rawDBBatchPostgreSQLV1.commandDeduplicationBatch.foreach(batch =>
-      execute(preparedDeleteCommandSubmissionBatch, batch.deduplication_key)
-    )
+      rawDBBatchPostgreSQLV1.commandDeduplicationBatch.foreach(batch =>
+        execute(preparedDeleteCommandSubmissionBatch, batch.deduplication_key)
+      )
 
-    connection.commit()
+      connection.commit()
+    } catch {
+      case NonFatal(e) =>
+        connection.rollback()
+        throw e
+    }
   }
 
   private val preparedUpdateLedgerEnd = connection.prepareStatement(

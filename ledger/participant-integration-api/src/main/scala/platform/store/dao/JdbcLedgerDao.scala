@@ -342,7 +342,6 @@ private class JdbcLedgerDao(
           PersistenceResponse.Ok
       }
     }
-
   }
 
   private val SQL_GET_PARTY_ENTRIES = SQL(
@@ -492,6 +491,7 @@ private class JdbcLedgerDao(
       offsetStep: OffsetStep,
       transaction: CommittedTransaction,
       divulged: Iterable[DivulgedContract],
+      workflowId: Option[String],
   )(implicit loggingContext: LoggingContext): Future[PersistenceResponse] = {
     logger.info("Storing transaction")
     dbDispatcher
