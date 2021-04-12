@@ -152,11 +152,6 @@ private class JdbcLedgerDao(
       ParametersTable.setParticipantId(participantId.unwrap)(connection)
     }
 
-  private val SQL_GET_CONFIGURATION_ENTRIES = SQL(
-    s"select * from configuration_entries where ledger_offset > {startExclusive} and ledger_offset <= {endInclusive} order by ledger_offset asc ${queries
-      .limit(PageSize)} offset {queryOffset}"
-  )
-
   override def lookupLedgerConfiguration()(implicit
       loggingContext: LoggingContext
   ): Future[Option[(Offset, Configuration)]] =
@@ -205,7 +200,7 @@ private class JdbcLedgerDao(
       withEnrichedLoggingContext("queryOffset" -> queryOffset.toString) { implicit loggingContext =>
         dbDispatcher.executeSql(metrics.daml.index.db.loadConfigurationEntries) {
           implicit connection =>
-            SQL_GET_CONFIGURATION_ENTRIES
+            SQL(queries.SQL_GET_CONFIGURATION_ENTRIES)
               .on(
                 "startExclusive" -> startExclusive,
                 "endInclusive" -> endInclusive,
@@ -1151,6 +1146,11 @@ private[platform] object JdbcLedgerDao {
         |where ledger_offset>{startExclusive} and ledger_offset<={endInclusive}
         |order by ledger_offset asc limit {pageSize} offset {queryOffset}""".stripMargin
 
+    protected[JdbcLedgerDao] def SQL_GET_CONFIGURATION_ENTRIES =
+      """select * from configuration_entries where
+        |ledger_offset > {startExclusive} and ledger_offset <= {endInclusive}
+        |order by ledger_offset asc limit {pageSize} offset {queryOffset}""".stripMargin
+
     // TODO: Avoid brittleness of error message checks
     protected[JdbcLedgerDao] def DUPLICATE_KEY_ERROR: String
 
@@ -1295,6 +1295,12 @@ private[platform] object JdbcLedgerDao {
 
     override protected[JdbcLedgerDao] val SQL_GET_PARTY_ENTRIES: String =
       """select * from party_entries where
+        |(dbms_lob.compare(ledger_offset, {startExclusive}) = 1) and
+        |(dbms_lob.compare(ledger_offset, {endInclusive}) IN (0, -1))
+        |offset {queryOffset} rows fetch next {pageSize} rows only""".stripMargin
+
+    override protected [JdbcLedgerDao] val SQL_GET_CONFIGURATION_ENTRIES =
+      """select * from configuration_entries where
         |(dbms_lob.compare(ledger_offset, {startExclusive}) = 1) and
         |(dbms_lob.compare(ledger_offset, {endInclusive}) IN (0, -1))
         |offset {queryOffset} rows fetch next {pageSize} rows only""".stripMargin
