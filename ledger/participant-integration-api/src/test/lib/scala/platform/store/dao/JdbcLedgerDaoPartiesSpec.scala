@@ -62,31 +62,29 @@ private[dao] trait JdbcLedgerDaoPartiesSpec {
     val rejectedRecordTime = Instant.now()
     val rejected1 =
       PartyLedgerEntry.AllocationRejected(rejectedSubmissionId, rejectedRecordTime, rejectionReason)
+    val originalOffset = previousOffset.get().get
     val offset1 = nextOffset()
-    val offset2 = nextOffset()
-    val offset3 = nextOffset()
-    val offset4 = nextOffset()
-
     for {
       response1 <- storePartyEntry(
         accepted,
-        offset2,
+        offset1,
         Some(acceptedSubmissionId),
         acceptedRecordTime,
       )
       _ = response1 should be(PersistenceResponse.Ok)
+      offset2 = nextOffset()
       response2 <- storeRejectedPartyEntry(
         rejectionReason,
-        offset3,
+        offset2,
         rejectedSubmissionId,
         rejectedRecordTime,
       )
       _ = response2 should be(PersistenceResponse.Ok)
       parties <- ledgerDao.getParties(Seq(acceptedParty, nonExistentParty))
-      partyEntries <- ledgerDao.getPartyEntries(offset1, offset4).take(4).runWith(Sink.seq)
+      partyEntries <- ledgerDao.getPartyEntries(originalOffset, nextOffset()).take(4).runWith(Sink.seq)
     } yield {
       parties should contain.only(accepted)
-      assert(partyEntries == Vector((offset2, accepted1), (offset3, rejected1)))
+      assert(partyEntries == Vector((offset1, accepted1), (offset2, rejected1)))
     }
   }
 
