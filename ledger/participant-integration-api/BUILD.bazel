@@ -274,7 +274,10 @@ da_scala_test_suite(
     size = "large",
     srcs = glob(
         ["src/test/suite/**/*.scala"],
-        exclude = ["src/test/suite/**/ResetService*IT.scala"],
+        exclude = [
+            "src/test/suite/**/ResetService*IT.scala",
+            "**/*Oracle*",
+        ],
     ),
     data = [
         "//ledger/test-common:model-tests-stable.dar",
@@ -286,6 +289,28 @@ da_scala_test_suite(
     ],
     resources = glob(["src/test/resources/**/*"]),
     scala_deps = scala_test_deps,
+    deps = test_deps,
+)
+
+da_scala_test_suite(
+    name = "participant-integration-api-tests-oracle",
+    size = "large",
+    srcs = glob(
+        ["src/test/suite/**/*Oracle*.scala"],
+    ),
+    data = [
+        "//ledger/test-common:model-tests-stable.dar",
+        "//ledger/test-common/test-certificates",
+        openssl_executable,
+    ],
+    jvm_flags = [
+        "-Djava.security.debug=\"certpath ocsp\"",  # This facilitates debugging of the OCSP checks mechanism
+    ],
+    resources = glob(["src/test/resources/**/*"]),
+    scala_deps = scala_test_deps,
+    runtime_deps = [
+        "@maven//:com_oracle_database_jdbc_ojdbc8",
+    ],
     deps = test_deps,
 )
 

@@ -16,7 +16,8 @@ object ContractsTableOracle extends ContractsTable {
 
   private val insertContractQuery: String =
     s"""merge into participant_contracts using dual
-       | on contract_id = {contract_id} when not matched then
+       | on (contract_id = {contract_id})
+       | when not matched then
        | insert (contract_id, template_id, create_argument, create_argument_compression, create_ledger_effective_time, create_key_hash, create_stakeholders)
        | values ({contract_id}, {template_id}, {create_argument}, {create_argument_compression}, {create_ledger_effective_time}, {create_key_hash}, {create_stakeholders})""".stripMargin
 

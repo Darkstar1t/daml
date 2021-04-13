@@ -11,6 +11,12 @@
 -- declaring upfront so this type is defined globally
 create type VARCHAR_ARRAY as VARRAY (100) of VARCHAR2(1000);
 /
+create type SMALLINT_ARRAY as VARRAY (100) of SMALLINT;
+/
+create type BLOB_ARRAY as VARRAY (100) of BLOB;
+/
+create type TIMESTAMP_ARRAY as VARRAY (100) of TIMESTAMP;
+/
 CREATE TABLE parameters
 -- this table is meant to have a single row storing all the parameters we have
 (

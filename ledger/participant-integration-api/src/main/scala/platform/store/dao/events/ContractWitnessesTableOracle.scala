@@ -12,7 +12,8 @@ import com.daml.platform.store.dao.events.ContractWitnessesTable.Executable
 object ContractWitnessesTableOracle extends ContractWitnessesTable {
   private val insert: String =
     s"""merge into $TableName using dual 
-       | on $IdColumn = {$IdColumn} and $WitnessColumn = {$WitnessColumn} when not matched then
+       | on ($IdColumn = {$IdColumn} and $WitnessColumn = {$WitnessColumn})
+       | when not matched then
        | insert ($IdColumn, $WitnessColumn)
        | values ({$IdColumn}, {$WitnessColumn})""".stripMargin
 

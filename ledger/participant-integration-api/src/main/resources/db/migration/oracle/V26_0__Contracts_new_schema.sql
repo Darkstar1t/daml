@@ -23,7 +23,8 @@ create table participant_contracts
     --TODO BH: binary (blob) field cannot be part of the index, creating a hex representation of the blob for the index
     create_key_hash_hex          VARCHAR2(4000),
     create_key_hash              BLOB,
-    create_ledger_effective_time timestamp
+    create_ledger_effective_time TIMESTAMP,
+    create_argument_compression  NUMBER
 );
 
 -- support looking up a contract by key

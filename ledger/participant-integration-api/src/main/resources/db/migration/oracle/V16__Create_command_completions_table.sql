@@ -3,7 +3,7 @@
 
 CREATE TABLE participant_command_completions
 (
-    completion_offset NUMBER          not null,
+    completion_offset BLOB          not null,
     record_time       TIMESTAMP       not null,
 
     application_id    NVARCHAR2(1000) not null, -- null for checkpoints
@@ -16,4 +16,5 @@ CREATE TABLE participant_command_completions
 );
 
 -- TODO BH: submitters cannot be part of the index because it is a custom user-defined type
-CREATE INDEX participant_command_completions_idx ON participant_command_completions (completion_offset, application_id);
+-- TODO BH: completion_offset cannot be part of the index because it is a BLOB
+CREATE INDEX participant_command_completions_idx ON participant_command_completions (application_id);
