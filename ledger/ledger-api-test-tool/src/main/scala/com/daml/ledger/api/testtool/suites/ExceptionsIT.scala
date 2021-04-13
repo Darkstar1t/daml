@@ -146,6 +146,40 @@ final class ExceptionsIT extends LedgerTestSuite {
   })
 
   test(
+    "ExRollbackKeyFetchCreated",
+    "Rollback with key fetch fails once contract is archived",
+    allocate(SingleParty),
+  )(implicit ec => { case Participants(Participant(ledger, party)) =>
+    for {
+      t <- ledger.create(party, ExceptionTester(party))
+      withKey <- ledger.create(party, WithKey(party))
+      _ <- ledger.exercise(party, t.exerciseFetchKey(_))
+      _ <- ledger.exercise(party, withKey.exerciseArchive(_))
+      failure <- ledger.exercise(party, t.exerciseFetchKey(_)).mustFail("contract not found")
+    } yield {
+      assertGrpcError(failure, Status.Code.ABORTED, "Contract could not be found")
+      ()
+    }
+  })
+
+  test(
+    "ExRollbackKeyFetchArchived",
+    "Rollback with key fetch succeeds once contract is created",
+    allocate(SingleParty),
+  )(implicit ec => { case Participants(Participant(ledger, party)) =>
+    for {
+      t <- ledger.create(party, ExceptionTester(party))
+      failure <- ledger.exercise(party, t.exerciseFetchKey(_)).mustFail("contract not found")
+      _ = assertGrpcError(failure, Status.Code.ABORTED, "Contract could not be found")
+      _ <- ledger.create(party, WithKey(party))
+      _ <- ledger.exercise(party, t.exerciseFetchKey(_))
+    } yield {
+      assertGrpcError(failure, Status.Code.ABORTED, "Contract could not be found")
+      ()
+    }
+  })
+
+  test(
     "ExRollbackHidden",
     "Create and exercise in rollback node is not exposed on ledger API",
     allocate(SingleParty),

@@ -105,6 +105,11 @@ template ExceptionTester
          catch
            E _ -> pure ()
 
+    nonconsuming choice FetchKey : ()
+      controller p
+      do try (fetchByKey @WithKey p >> throw (E ""))
+         catch
+           E _ -> pure ()
 
     nonconsuming choice NestedCatch : ()
       controller p
