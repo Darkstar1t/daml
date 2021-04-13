@@ -3,7 +3,7 @@
 
 package com.daml.platform.indexer.parallel
 
-import java.sql.{Connection, DriverManager, PreparedStatement, ResultSet}
+import java.sql.{DriverManager, PreparedStatement, ResultSet}
 
 import com.daml.ledger.participant.state.v1.Offset
 
@@ -17,13 +17,11 @@ trait PostgresDAO {
   def updateParams(ledgerEnd: Offset, eventSeqId: Long, configuration: Option[Array[Byte]]): Unit
 
   def initialize: (Option[Offset], Option[Long])
-
-  def connection: Connection
 }
 
 case class JDBCPostgresDAO(jdbcUrl: String) extends PostgresDAO with AutoCloseable {
 
-  val connection: Connection = {
+  private val connection = {
     val c = DriverManager.getConnection(jdbcUrl)
     c.setAutoCommit(false)
 

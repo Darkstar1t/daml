@@ -38,17 +38,10 @@ import com.daml.platform.indexer.OffsetStep
 import com.daml.platform.indexer.parallel.UpdateToDBDTOV1.transactionAcceptedToEvents
 import com.daml.platform.indexer.parallel._
 import com.daml.platform.store.Conversions._
-import com.daml.platform.store.{Conversions, DbType, LfValueTranslationCache}
 import com.daml.platform.store.SimpleSqlAsVectorOf.SimpleSqlAsVectorOf
 import com.daml.platform.store.appendonlydao.CommandCompletionsTable.prepareCompletionsDelete
 import com.daml.platform.store.appendonlydao.events.{EventsTableDelete, _}
-import com.daml.platform.store.dao.{
-  LedgerDao,
-  LedgerReadDao,
-  MeteredLedgerDao,
-  MeteredLedgerReadDao,
-  PersistenceResponse,
-}
+import com.daml.platform.store.dao._
 import com.daml.platform.store.dao.events.TransactionsWriter.PreparedInsert
 import com.daml.platform.store.entries.{
   ConfigurationEntry,
@@ -56,6 +49,7 @@ import com.daml.platform.store.entries.{
   PackageLedgerEntry,
   PartyLedgerEntry,
 }
+import com.daml.platform.store.{Conversions, DbType, LfValueTranslationCache}
 import scalaz.syntax.tag._
 
 import scala.concurrent.duration._
@@ -216,25 +210,7 @@ private class JdbcLedgerDao(
   )(implicit loggingContext: LoggingContext): Future[PersistenceResponse] = {
     val configurationBytes = Configuration.encode(configuration).toByteArray
 
-    val optExpectedGeneration: Option[Long] = lastConfiguration.get().map { _._1.generation + 1 }
-    val finalRejectionReason: Option[String] =
-      optExpectedGeneration match {
-        case Some(expGeneration)
-            if rejectionReason.isEmpty && expGeneration != configuration.generation =>
-          // If we're not storing a rejection and the new generation is not succ of current configuration, then
-          // we store a rejection. This code path is only expected to be taken in sandbox. This follows the same
-          // pattern as with transactions.
-          Some(
-            s"Generation mismatch: expected=$expGeneration, actual=${configuration.generation}"
-          )
-
-        case _ =>
-          // Rejection reason was set, or we have no previous configuration generation, in which case we accept any
-          // generation.
-          rejectionReason
-      }
-
-    if (finalRejectionReason.isEmpty) {
+    if (rejectionReason.isEmpty) {
       lastConfiguration.set(Some(configuration -> configurationBytes))
     }
 
@@ -245,15 +221,16 @@ private class JdbcLedgerDao(
         ledger_offset = offsetStep.offset.toByteArray,
         recorded_at = recordedAt,
         submission_id = submissionId,
-        typ = finalRejectionReason
+        typ = rejectionReason
           .map(_ => JdbcLedgerDao.rejectType)
           .getOrElse(JdbcLedgerDao.acceptType),
         configuration = configurationBytes,
-        rejection_reason = finalRejectionReason,
+        rejection_reason = rejectionReason,
       )
 
     val builder = RawDBBatchPostgreSQLV1.Builder()
     builder.add(configurationEntry)
+
     Try {
       postgresDao.insertBatch(builder.build())
       Future.successful(PersistenceResponse.Ok)
