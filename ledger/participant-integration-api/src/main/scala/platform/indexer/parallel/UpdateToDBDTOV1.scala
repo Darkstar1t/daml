@@ -26,7 +26,7 @@ object UpdateToDBDTOV1 {
         // TODO append-only: we might want to tune up deduplications so it is also a temporal query
         Iterator(
           new DBDTOV1.CommandCompletion(
-            completion_offset = offset.toByteArray,
+            completion_offset = offset.toHexString,
             record_time = u.recordTime.toInstant,
             application_id = u.submitterInfo.applicationId,
             submitters = u.submitterInfo.actAs.toSet,
@@ -46,7 +46,7 @@ object UpdateToDBDTOV1 {
       case u: Update.ConfigurationChanged =>
         Iterator(
           new DBDTOV1.ConfigurationEntry(
-            ledger_offset = offset.toByteArray,
+            ledger_offset = offset.toHexString,
             recorded_at = u.recordTime.toInstant,
             submission_id = u.submissionId,
             typ = JdbcLedgerDao.acceptType,
@@ -58,7 +58,7 @@ object UpdateToDBDTOV1 {
       case u: Update.ConfigurationChangeRejected =>
         Iterator(
           new DBDTOV1.ConfigurationEntry(
-            ledger_offset = offset.toByteArray,
+            ledger_offset = offset.toHexString,
             recorded_at = u.recordTime.toInstant,
             submission_id = u.submissionId,
             typ = JdbcLedgerDao.rejectType,
@@ -70,7 +70,7 @@ object UpdateToDBDTOV1 {
       case u: Update.PartyAddedToParticipant =>
         Iterator(
           new DBDTOV1.PartyEntry(
-            ledger_offset = offset.toByteArray,
+            ledger_offset = offset.toHexString,
             recorded_at = u.recordTime.toInstant,
             submission_id = u.submissionId,
             party = Some(u.party),
@@ -83,7 +83,7 @@ object UpdateToDBDTOV1 {
             party = u.party,
             display_name = Some(u.displayName),
             explicit = true,
-            ledger_offset = Some(offset.toByteArray),
+            ledger_offset = Some(offset.toHexString),
             is_local = u.participantId == participantId,
           ),
         )
@@ -91,7 +91,7 @@ object UpdateToDBDTOV1 {
       case u: Update.PartyAllocationRejected =>
         Iterator(
           new DBDTOV1.PartyEntry(
-            ledger_offset = offset.toByteArray,
+            ledger_offset = offset.toHexString,
             recorded_at = u.recordTime.toInstant,
             submission_id = Some(u.submissionId),
             party = None,
@@ -111,13 +111,13 @@ object UpdateToDBDTOV1 {
             source_description = u.sourceDescription,
             size = archive.getPayload.size.toLong,
             known_since = u.recordTime.toInstant,
-            ledger_offset = offset.toByteArray,
+            ledger_offset = offset.toHexString,
             _package = archive.toByteArray,
           )
         }
         val packageEntries = u.submissionId.iterator.map(submissionId =>
           new DBDTOV1.PackageEntry(
-            ledger_offset = offset.toByteArray,
+            ledger_offset = offset.toHexString,
             recorded_at = u.recordTime.toInstant,
             submission_id = Some(submissionId),
             typ = JdbcLedgerDao.acceptType,
@@ -129,7 +129,7 @@ object UpdateToDBDTOV1 {
       case u: Update.PublicPackageUploadRejected =>
         Iterator(
           new DBDTOV1.PackageEntry(
-            ledger_offset = offset.toByteArray,
+            ledger_offset = offset.toHexString,
             recorded_at = u.recordTime.toInstant,
             submission_id = Some(u.submissionId),
             typ = JdbcLedgerDao.rejectType,
@@ -152,7 +152,7 @@ object UpdateToDBDTOV1 {
               val (createArgument, createKeyValue) = translation.serialize(eventId, create)
               new DBDTOV1.Event(
                 event_kind = 10,
-                event_offset = Some(offset.toByteArray),
+                event_offset = Some(offset.toHexString),
                 transaction_id = Some(u.transactionId),
                 ledger_effective_time = Some(u.transactionMeta.ledgerEffectiveTime.toInstant),
                 command_id = u.optSubmitterInfo.map(_.commandId),
@@ -197,7 +197,7 @@ object UpdateToDBDTOV1 {
                 translation.serialize(eventId, exercise)
               new DBDTOV1.Event(
                 event_kind = if (exercise.consuming) 20 else 25,
-                event_offset = Some(offset.toByteArray),
+                event_offset = Some(offset.toHexString),
                 transaction_id = Some(u.transactionId),
                 ledger_effective_time = Some(u.transactionMeta.ledgerEffectiveTime.toInstant),
                 command_id = u.optSubmitterInfo.map(_.commandId),
@@ -280,7 +280,7 @@ object UpdateToDBDTOV1 {
 
         val completions = u.optSubmitterInfo.iterator.map { submitterInfo =>
           new DBDTOV1.CommandCompletion(
-            completion_offset = offset.toByteArray,
+            completion_offset = offset.toHexString,
             record_time = u.recordTime.toInstant,
             application_id = submitterInfo.applicationId,
             submitters = submitterInfo.actAs.toSet,

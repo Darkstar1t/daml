@@ -38,12 +38,12 @@ DROP table participant_contract_witnesses CASCADE;
 DROP TABLE parameters;
 CREATE TABLE parameters (
     ledger_id text NOT NULL,
-    ledger_end bytea,
+    ledger_end text,
     ledger_end_sequential_id bigint, -- new field: the sequential_event_id up to which all events have been ingested
     external_ledger_end text,
     configuration bytea,
     participant_id text,
-    participant_pruned_up_to_inclusive bytea
+    participant_pruned_up_to_inclusive text
 );
 
 -- create, divulgence, consuming, and non-consuming events
@@ -65,7 +65,7 @@ CREATE TABLE participant_events (
     -- NOTE: this must be assigned sequentially by the indexer such that
     -- for all events ev1, ev2 it holds that '(ev1.offset < ev2.offset) <=> (ev1.event_sequential_id < ev2.event_sequential_id)
 
-    event_offset bytea,                                 -- NULL for divulgence events
+    event_offset text,                                 -- NULL for divulgence events
 
     -- * transaction metadata
     transaction_id text,                                -- NULL for migrated divulgence events

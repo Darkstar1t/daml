@@ -5,6 +5,7 @@ package com.daml.platform.indexer.parallel
 
 import java.sql.{DriverManager, PreparedStatement, ResultSet}
 
+import com.daml.lf.data.Ref
 import com.daml.ledger.participant.state.v1.Offset
 
 import scala.collection.mutable
@@ -501,13 +502,13 @@ case class JDBCPostgresDAO(jdbcUrl: String) extends PostgresDAO with AutoCloseab
     configuration match {
       case Some(configBytes) =>
         // TODO append-only: just a shortcut, proper solution: reading config with a temporal query
-        preparedUpdateLedgerEndWithConfig.setObject(1, ledgerEnd.toByteArray)
+        preparedUpdateLedgerEndWithConfig.setString(1, ledgerEnd.toHexString)
         preparedUpdateLedgerEndWithConfig.setLong(2, eventSeqId)
         preparedUpdateLedgerEndWithConfig.setBytes(3, configBytes)
         preparedUpdateLedgerEndWithConfig.execute()
 
       case None =>
-        preparedUpdateLedgerEnd.setObject(1, ledgerEnd.toByteArray)
+        preparedUpdateLedgerEnd.setString(1, ledgerEnd.toHexString)
         preparedUpdateLedgerEnd.setLong(2, eventSeqId)
         preparedUpdateLedgerEnd.execute()
 
@@ -522,7 +523,7 @@ case class JDBCPostgresDAO(jdbcUrl: String) extends PostgresDAO with AutoCloseab
 
     offset.foreach { existingOffset =>
       List(1, 2, 3, 4, 5, 6, 7).foreach(
-        preparedDeleteIngestionOverspillEntries.setBytes(_, existingOffset.toByteArray)
+        preparedDeleteIngestionOverspillEntries.setString(_, existingOffset.toHexString)
       )
       preparedDeleteIngestionOverspillEntries.execute()
     }
@@ -547,7 +548,8 @@ case class JDBCPostgresDAO(jdbcUrl: String) extends PostgresDAO with AutoCloseab
       )
     )(rs =>
       (
-        if (rs.getBytes(1) == null) None else Some(Offset.fromByteArray(rs.getBytes(1))),
+        if (rs.getString(1) == null) None
+        else Some(Offset.fromHexString(Ref.HexString.assertFromString(rs.getString(1)))),
         Option(rs.getLong(2)),
       )
     )
