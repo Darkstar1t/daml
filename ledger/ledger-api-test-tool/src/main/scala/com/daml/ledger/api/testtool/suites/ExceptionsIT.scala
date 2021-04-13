@@ -8,8 +8,7 @@ import com.daml.ledger.api.testtool.infrastructure.Assertions._
 import com.daml.ledger.api.testtool.infrastructure.LedgerTestSuite
 import com.daml.ledger.api.testtool.infrastructure.TransactionHelpers._
 import com.daml.ledger.api.testtool.infrastructure.Synchronize.synchronize
-import com.daml.ledger.test.semantic.Exceptions._
-import com.daml.ledger.test.semantic.Exceptions.ExceptionTester._
+import com.daml.ledger.test.semantic.Exceptions.{Divulger, ExceptionTester, Fetcher, WithKey}
 import io.grpc.Status
 
 final class ExceptionsIT extends LedgerTestSuite {
@@ -74,8 +73,8 @@ final class ExceptionsIT extends LedgerTestSuite {
   })
 
   test(
-    "ExRollbackDuplicateKey",
-    "Create in rollback node is subject to duplicate key check",
+    "ExRollbackDuplicateKeyCreated",
+    "Rollback fails once contract with same key is created",
     allocate(SingleParty),
   )(implicit ec => { case Participants(Participant(ledger, party)) =>
     for {
@@ -87,6 +86,22 @@ final class ExceptionsIT extends LedgerTestSuite {
     } yield {
       assertGrpcError(failure, Status.Code.ABORTED, "duplicate key")
     }
+  })
+
+  test(
+    "ExRollbackDuplicateKeyArchived",
+    "Rollback succeeds once contract with same key is archived",
+    allocate(SingleParty),
+  )(implicit ec => { case Participants(Participant(ledger, party)) =>
+    for {
+      t <- ledger.create(party, ExceptionTester(party))
+      withKey <- ledger.create(party, WithKey(party))
+     failure <- ledger.exercise(party, t.exerciseDuplicateKey(_)).mustFail("duplicate key")
+      // TODO this currently succeeds
+     _ = assertGrpcError(failure, Status.Code.ABORTED, "duplicate key")
+     _ <- ledger.exercise(party, withKey.exerciseArchive(_))
+     _ <- ledger.exercise(party, t.exerciseDuplicateKey(_))
+    } yield ()
   })
 
   test(
