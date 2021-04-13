@@ -356,8 +356,7 @@ private class JdbcLedgerDao(
   }
 
   private val partyEntryParser: RowParser[(Offset, PartyLedgerEntry)] =
-    (
-      offset("ledger_offset") ~
+    (offset("ledger_offset") ~
       date("recorded_at") ~
       ledgerString("submission_id").? ~
       party("party").? ~
@@ -1299,7 +1298,7 @@ private[platform] object JdbcLedgerDao {
         |(dbms_lob.compare(ledger_offset, {endInclusive}) IN (0, -1))
         |offset {queryOffset} rows fetch next {pageSize} rows only""".stripMargin
 
-    override protected [JdbcLedgerDao] val SQL_GET_CONFIGURATION_ENTRIES =
+    override protected[JdbcLedgerDao] val SQL_GET_CONFIGURATION_ENTRIES =
       """select * from configuration_entries where
         |(dbms_lob.compare(ledger_offset, {startExclusive}) = 1) and
         |(dbms_lob.compare(ledger_offset, {endInclusive}) IN (0, -1))

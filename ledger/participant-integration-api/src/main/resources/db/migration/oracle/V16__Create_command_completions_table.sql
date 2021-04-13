@@ -15,5 +15,5 @@ CREATE TABLE participant_command_completions
     status_message    NVARCHAR2(1000)           -- null for successful command and checkpoints
 );
 
--- TODO BH: submitters cannot be part of the array because it is a custom user-defined type
+-- TODO BH: submitters cannot be part of the index because it is a custom user-defined type
 CREATE INDEX participant_command_completions_idx ON participant_command_completions (completion_offset, application_id);

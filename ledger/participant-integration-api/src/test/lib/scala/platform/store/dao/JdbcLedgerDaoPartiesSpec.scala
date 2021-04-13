@@ -81,7 +81,10 @@ private[dao] trait JdbcLedgerDaoPartiesSpec {
       )
       _ = response2 should be(PersistenceResponse.Ok)
       parties <- ledgerDao.getParties(Seq(acceptedParty, nonExistentParty))
-      partyEntries <- ledgerDao.getPartyEntries(originalOffset, nextOffset()).take(4).runWith(Sink.seq)
+      partyEntries <- ledgerDao
+        .getPartyEntries(originalOffset, nextOffset())
+        .take(4)
+        .runWith(Sink.seq)
     } yield {
       parties should contain.only(accepted)
       assert(partyEntries == Vector((offset1, accepted1), (offset2, rejected1)))

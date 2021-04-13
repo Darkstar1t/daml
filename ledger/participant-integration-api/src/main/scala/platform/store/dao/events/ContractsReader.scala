@@ -15,7 +15,11 @@ import com.daml.platform.store.Conversions._
 import com.daml.platform.store.DbType
 import com.daml.platform.store.interfaces.LedgerDaoContractsReader._
 import com.daml.platform.store.dao.DbDispatcher
-import com.daml.platform.store.dao.events.SqlFunctions.{H2SqlFunctions, OracleSqlFunctions, PostgresSqlFunctions}
+import com.daml.platform.store.dao.events.SqlFunctions.{
+  H2SqlFunctions,
+  OracleSqlFunctions,
+  PostgresSqlFunctions,
+}
 import com.daml.platform.store.dao.events.ContractsReader._
 import com.daml.platform.store.interfaces.LedgerDaoContractsReader
 import com.daml.platform.store.serialization.{Compression, ValueSerializer}
