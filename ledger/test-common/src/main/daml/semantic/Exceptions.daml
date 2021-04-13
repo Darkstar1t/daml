@@ -1,3 +1,6 @@
+-- Copyright (c) 2021 Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+
 {-# LANGUAGE CPP #-}
 module Exceptions where
 
@@ -56,6 +59,9 @@ template ExceptionTester
     p : Party
   where
     signatory p
+    nonconsuming choice Noop : ()
+      controller p
+      do pure ()
     nonconsuming choice ThrowUncaught : ()
       controller p
       do throw (E "exception message")
@@ -69,6 +75,20 @@ template ExceptionTester
         cid : ContractId ExceptionTester
       controller p
       do try (fetch cid >> throw (E ""))
+         catch
+           E _ -> pure ()
+    nonconsuming choice RollbackConsuming : ()
+      with
+        cid : ContractId ExceptionTester
+      controller p
+      do try (archive cid >> throw (E ""))
+         catch
+           E _ -> pure ()
+    nonconsuming choice RollbackNonConsuming : ()
+      with
+        cid : ContractId ExceptionTester
+      controller p
+      do try (exercise cid Noop >> throw (E ""))
          catch
            E _ -> pure ()
     nonconsuming choice RolledBackChoice : ContractId ExceptionTester
@@ -97,3 +117,4 @@ template ExceptionTester
       do try throw (E2 "nested")
          catch
            E _ -> pure ()
+
