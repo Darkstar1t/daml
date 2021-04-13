@@ -87,7 +87,6 @@ private[dao] object ParametersTable {
     * @param connection The SQL connection.
     */
 
-  // TODO BH: this still is not updating correctly
   def updateLedgerEnd(offsetStep: OffsetStep, dbType: DbType)(implicit
       connection: Connection
   ): Unit =
