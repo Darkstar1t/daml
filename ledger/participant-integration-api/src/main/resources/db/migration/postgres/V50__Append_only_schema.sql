@@ -94,7 +94,7 @@ CREATE TABLE participant_events (
     create_observers text[],
     create_agreement_text text,
     create_key_value bytea,
-    create_key_hash bytea,
+    create_key_hash text,
 
     -- * exercise events (consuming and non_consuming)
     exercise_choice text,
