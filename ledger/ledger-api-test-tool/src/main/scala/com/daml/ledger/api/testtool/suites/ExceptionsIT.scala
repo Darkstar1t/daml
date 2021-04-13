@@ -40,6 +40,20 @@ final class ExceptionsIT extends LedgerTestSuite {
     }
   })
 
+  test(
+    "ExCaughtNested",
+    "Exceptions can be caught when thrown from a nested try block",
+    allocate(SingleParty),
+  )(implicit ec => { case Participants(Participant(ledger, party)) =>
+    for {
+      t <- ledger.create(party, ExceptionTester(party))
+      tree <- ledger.exercise(party, t.exerciseNestedCatch(_))
+    } yield {
+      assertLength(s"1 successful exercise", 1, exercisedEvents(tree))
+      ()
+    }
+  })
+
 
   test(
     "ExRollbackActive",

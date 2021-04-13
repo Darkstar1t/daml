@@ -9,6 +9,12 @@ exception E
   where
     message t
 
+exception E2
+  with
+    t : Text
+  where
+    message t
+
 template WithKey
   with
     p : Party
@@ -76,5 +82,18 @@ template ExceptionTester
     nonconsuming choice DuplicateKey : ()
       controller p
       do try (create (WithKey p) >> throw (E ""))
+         catch
+           E _ -> pure ()
+
+
+    nonconsuming choice NestedCatch : ()
+      controller p
+      do try (exercise self NestedCatchChild)
+         catch
+           E2 _ -> pure ()
+
+    nonconsuming choice NestedCatchChild : ()
+      controller p
+      do try throw (E2 "nested")
          catch
            E _ -> pure ()
