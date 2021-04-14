@@ -6,9 +6,9 @@ CREATE TABLE participant_command_completions
     completion_offset BLOB          not null,
     record_time       TIMESTAMP       not null,
 
-    application_id    NVARCHAR2(1000) not null, -- null for checkpoints
-    submitters        VARCHAR_ARRAY   not null, -- null for checkpoints
-    command_id        NVARCHAR2(1000) not null, -- null for checkpoints
+    application_id    NVARCHAR2(1000) not null,
+    submitters        VARCHAR_ARRAY   not null,
+    command_id        NVARCHAR2(1000) not null,
 
     transaction_id    NVARCHAR2(1000),          -- null if the command was rejected and checkpoints
     status_code       INTEGER,                  -- null for successful command and checkpoints
