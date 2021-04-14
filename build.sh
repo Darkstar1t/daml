@@ -68,9 +68,6 @@ bazel test //... \
   --test_env "POSTGRESQL_PORT=${POSTGRESQL_PORT}" \
   --test_env "POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}" \
   --test_env "POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}" \
-  --test_env "ORACLE_USERNAME=system" \
-  --test_env "ORACLE_PORT=${ORACLE_PORT}" \
-  --test_env  "ORACLE_PWD=${ORACLE_PWD}" \
   --experimental_execution_log_file "$ARTIFACT_DIRS/test_execution${execution_log_postfix}.log"
 
 # Make sure that Bazel query works.

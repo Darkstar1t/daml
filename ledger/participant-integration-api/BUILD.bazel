@@ -295,9 +295,7 @@ da_scala_test_suite(
 da_scala_test_suite(
     name = "participant-integration-api-tests-oracle",
     size = "large",
-    srcs = glob(
-        ["src/test/suite/**/*Oracle*.scala"],
-    ),
+    srcs = glob(["src/test/suite/**/*Oracle*.scala"]),
     data = [
         "//ledger/test-common:model-tests-stable.dar",
         "//ledger/test-common/test-certificates",
@@ -308,6 +306,10 @@ da_scala_test_suite(
     ],
     resources = glob(["src/test/resources/**/*"]),
     scala_deps = scala_test_deps,
+    target_compatible_with = select({
+        "//:oracle_available": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
     runtime_deps = [
         "@maven//:com_oracle_database_jdbc_ojdbc8",
     ],
