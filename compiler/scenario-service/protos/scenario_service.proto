@@ -559,6 +559,10 @@ message Node {
     string contract_id = 3; // optional, if empty, we haven't found a contract
   }
 
+  message Rollback {
+    repeated NodeId children = 1;
+  }
+
   NodeId node_id = 1;
   sfixed64 effective_at = 2;
   repeated Disclosure disclosures = 3;
@@ -574,5 +578,6 @@ message Node {
     Fetch fetch = 9;
     Exercise exercise = 10;
     LookupByKey lookup_by_key = 11;
+    Rollback rollback = 12;
   }
 }

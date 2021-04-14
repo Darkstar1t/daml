@@ -545,6 +545,13 @@ ltext = text . TL.toStrict
 mapV :: (a -> b) -> V.Vector a -> [b]
 mapV f = map f . V.toList
 
+prettyChildren :: V.Vector NodeId -> M (Doc SyntaxClass)
+prettyChildren cs
+  | V.null cs = pure mempty
+  | otherwise = do
+        children <- mapM (lookupNode >=> prettyNode) (V.toList cs)
+        pure $ keyword_ "children:" $$ vsep children
+
 prettyNodeNode :: NodeNode -> M (Doc SyntaxClass)
 prettyNodeNode nn = do
   world <- askWorld
@@ -571,13 +578,7 @@ prettyNodeNode nn = do
                   node_FetchTemplateId
 
     NodeNodeExercise Node_Exercise{..} -> do
-      ppChildren <-
-        if V.null node_ExerciseChildren
-        then pure mempty
-        else
-              (keyword_ "children:" $$) . vsep
-          <$> mapM (lookupNode >=> prettyNode) (V.toList node_ExerciseChildren)
-
+      ppChildren <- prettyChildren node_ExerciseChildren
       pure
         $   fcommasep (mapV prettyParty node_ExerciseActingParties)
         <-> ( -- group to align "exercises" and "with"
@@ -610,6 +611,10 @@ prettyNodeNode nn = do
           $$ if TL.null node_LookupByKeyContractId
             then text "not found"
             else text "found:" <-> text (TL.toStrict node_LookupByKeyContractId)
+
+    NodeNodeRollback Node_Rollback{..} -> do
+        ppChildren <- prettyChildren node_RollbackChildren
+        pure $ keyword_ "rollback" $$ ppChildren
 
 isUnitValue :: Maybe Value -> Bool
 isUnitValue (Just (Value (Just ValueSumUnit{}))) = True

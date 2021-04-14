@@ -427,9 +427,11 @@ object ScenarioLedger {
                   val idsToProcess = (mbParentId -> restOfNodeIds) :: restENPs
 
                   node match {
-                    case _: NodeRollback[_] =>
-                      // TODO https://github.com/digital-asset/daml/issues/8020
-                      sys.error("rollback nodes are not supported")
+                    case rollback: NodeRollback[_] =>
+                      processNodes(
+                        Right(newCache),
+                        (Some(nodeId) -> rollback.children.toList) :: idsToProcess,
+                      )
 
                     case nc: NodeCreate[ContractId] =>
                       val newCache1 =
