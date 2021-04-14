@@ -29,7 +29,7 @@ object DBDTOV1 {
       create_observers: Option[Set[String]],
       create_agreement_text: Option[String],
       create_key_value: Option[Array[Byte]],
-      create_key_hash: Option[Array[Byte]],
+      create_key_hash: Option[String],
       exercise_choice: Option[String],
       exercise_argument: Option[Array[Byte]],
       exercise_result: Option[Array[Byte]],

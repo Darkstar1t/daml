@@ -176,7 +176,7 @@ object UpdateToDBDTOV1 {
                   .map(compressionStrategy.createKeyValueCompression.compress),
                 create_key_hash = create.key
                   .map(convertLfValueKey(create.templateId, _))
-                  .map(_.hash.bytes.toByteArray),
+                  .map(_.hash.bytes.toHexString),
                 exercise_choice = None,
                 exercise_argument = None,
                 exercise_result = None,

@@ -45,7 +45,7 @@ class EventsBatch(
     val create_observers: Array[String], // '|' separated list
     val create_agreement_text: Array[String],
     val create_key_value: Array[Array[Byte]],
-    val create_key_hash: Array[Array[Byte]],
+    val create_key_hash: Array[String],
     val exercise_choice: Array[String],
     val exercise_argument: Array[Array[Byte]],
     val exercise_result: Array[Array[Byte]],
@@ -146,7 +146,7 @@ object RawDBBatchPostgreSQLV1 {
         mutable.ArrayBuilder.make[String], // '|' separated list
       create_agreement_text: mutable.ArrayBuilder[String] = mutable.ArrayBuilder.make[String],
       create_key_value: mutable.ArrayBuilder[Array[Byte]] = mutable.ArrayBuilder.make[Array[Byte]],
-      create_key_hash: mutable.ArrayBuilder[Array[Byte]] = mutable.ArrayBuilder.make[Array[Byte]],
+      create_key_hash: mutable.ArrayBuilder[String] = mutable.ArrayBuilder.make[String],
       exercise_choice: mutable.ArrayBuilder[String] = mutable.ArrayBuilder.make[String],
       exercise_argument: mutable.ArrayBuilder[Array[Byte]] = mutable.ArrayBuilder.make[Array[Byte]],
       exercise_result: mutable.ArrayBuilder[Array[Byte]] = mutable.ArrayBuilder.make[Array[Byte]],
