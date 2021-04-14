@@ -9,13 +9,15 @@
 
 -- custom array of varchar2 type used by several columns across tables
 -- declaring upfront so this type is defined globally
-create type VARCHAR_ARRAY as VARRAY (100) of VARCHAR2(1000);
+create type VARCHAR_ARRAY as VARRAY(32767) OF VARCHAR2(4000);
 /
-create type SMALLINT_ARRAY as VARRAY (100) of SMALLINT;
+create type SMALLINT_ARRAY as VARRAY(32767) of SMALLINT;
 /
-create type BLOB_ARRAY as VARRAY (100) of BLOB;
+create type BYTE_ARRAY_ARRAY as VARRAY(32767) of RAW(2000);
 /
-create type TIMESTAMP_ARRAY as VARRAY (100) of TIMESTAMP;
+create type TIMESTAMP_ARRAY as VARRAY(32767) of TIMESTAMP;
+/
+create type BOOLEAN_ARRAY as VARRAY(32767) of NUMBER(1,0);
 /
 CREATE TABLE parameters
 -- this table is meant to have a single row storing all the parameters we have
