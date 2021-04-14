@@ -55,6 +55,7 @@ private[platform] object CommandCompletionsTable {
     SQL"select completion_offset, record_time, command_id, transaction_id, status_code, status_message from participant_command_completions where completion_offset > $startExclusive and completion_offset <= $endInclusive and application_id = $applicationId and #$submittersInPartiesClause order by completion_offset asc"
   }
 
+  // TODO BH: need to deal with oracle vs postgres implicit array conversion here
   def prepareCompletionInsert(
       submitterInfo: SubmitterInfo,
       offset: Offset,
@@ -64,6 +65,7 @@ private[platform] object CommandCompletionsTable {
     SQL"insert into participant_command_completions(completion_offset, record_time, application_id, submitters, command_id, transaction_id) values ($offset, $recordTime, ${submitterInfo.applicationId}, ${submitterInfo.actAs
       .toArray[String]}, ${submitterInfo.commandId}, $transactionId)"
 
+  // TODO BH: need to deal with oracle vs postgres implicit array conversion here
   def prepareRejectionInsert(
       submitterInfo: SubmitterInfo,
       offset: Offset,
