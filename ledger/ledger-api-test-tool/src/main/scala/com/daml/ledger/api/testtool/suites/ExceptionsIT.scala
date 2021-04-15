@@ -94,6 +94,42 @@ final class ExceptionsIT extends LedgerTestSuite {
   })
 
   test(
+    "ExRolledbackArchiveConsuming",
+    "Rolledback archive does not block consuming exercise",
+    allocate(SingleParty),
+  )(implicit ec => { case Participants(Participant(ledger, party)) =>
+    for {
+      t <- ledger.create(party, ExceptionTester(party))
+      withKey <- ledger.create(party, WithKey(party))
+      _ <- ledger.exercise(party, t.exerciseRolledbackArchiveConsuming(_, withKey))
+    } yield ()
+  })
+
+  test(
+    "ExRolledbackArchiveNonConsuming",
+    "Rolled back archive does not block consuming exercise",
+    allocate(SingleParty),
+  )(implicit ec => { case Participants(Participant(ledger, party)) =>
+    for {
+      t <- ledger.create(party, ExceptionTester(party))
+      withKey <- ledger.create(party, WithKey(party))
+      _ <- ledger.exercise(party, t.exerciseRolledbackArchiveNonConsuming(_, withKey))
+    } yield ()
+  })
+
+  test(
+    "ExRolledbackKeyCreation",
+    "Rolled back key creation does not block creation of the same key",
+    allocate(SingleParty),
+  )(implicit ec => { case Participants(Participant(ledger, party)) =>
+    for {
+      t <- ledger.create(party, ExceptionTester(party))
+      _ <- ledger.exercise(party, t.exerciseRolledbackDuplicateKey(_))
+    } yield ()
+  })
+
+
+  test(
     "ExRollbackActiveExerciseNonConsuming",
     "Rollback node depends on activeness of contract in a non-consuming exercise",
     allocate(SingleParty),

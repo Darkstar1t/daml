@@ -25,6 +25,9 @@ template WithKey
     signatory p
     key p : Party
     maintainer key
+    nonconsuming choice WithKey_Noop : ()
+      controller p
+      do pure ()
 
 template Divulger
   with
@@ -123,3 +126,24 @@ template ExceptionTester
          catch
            E _ -> pure ()
 
+    nonconsuming choice RolledbackArchiveConsuming : ()
+      with
+        cid : ContractId WithKey
+      controller p
+      do try (archive cid >> throw (E ""))
+         catch
+            E _ -> archive cid
+
+    nonconsuming choice RolledbackArchiveNonConsuming : ()
+      with
+        cid : ContractId WithKey
+      controller p
+      do try (archive cid >> throw (E ""))
+         catch
+            E _ -> exercise cid WithKey_Noop
+
+    nonconsuming choice RolledbackDuplicateKey : ()
+      controller p
+      do try (create (WithKey p) >> throw (E ""))
+         catch
+            E _ -> create (WithKey p) >> pure ()
