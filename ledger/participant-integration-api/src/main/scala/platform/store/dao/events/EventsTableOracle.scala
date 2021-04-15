@@ -7,9 +7,10 @@ import java.sql.Connection
 import java.time.Instant
 
 import anorm.{BatchSql, NamedParameter}
-import com.daml.ledger.participant.state.v1.{Offset, SubmitterInfo, WorkflowId}
 import com.daml.ledger.{EventId, TransactionId}
+import com.daml.ledger.participant.state.v1.{Offset, SubmitterInfo, WorkflowId}
 import com.daml.platform.store.Conversions._
+import com.daml.platform.store.OracleArrayConversions._
 
 object EventsTableOracle extends EventsTable {
 

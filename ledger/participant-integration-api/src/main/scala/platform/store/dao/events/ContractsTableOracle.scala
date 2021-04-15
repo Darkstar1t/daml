@@ -11,6 +11,7 @@ import com.daml.ledger.participant.state.v1.DivulgedContract
 import com.daml.platform.store.Conversions._
 import com.daml.platform.store.dao.events.ContractsTable.Executable
 import com.daml.platform.store.serialization.Compression
+import com.daml.platform.store.OracleArrayConversions._
 
 object ContractsTableOracle extends ContractsTable {
 

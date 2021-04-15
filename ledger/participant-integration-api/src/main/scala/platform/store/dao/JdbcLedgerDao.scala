@@ -449,7 +449,7 @@ private class JdbcLedgerDao(
       rejectionReason: RejectionReason,
   )(implicit connection: Connection): Unit = {
     stopDeduplicatingCommandSync(domain.CommandId(info.commandId), info.actAs)
-    prepareRejectionInsert(info, offset, recordTime, rejectionReason).execute()
+    prepareRejectionInsert(info, offset, recordTime, rejectionReason, dbType).execute()
     ()
   }
 
@@ -534,7 +534,7 @@ private class JdbcLedgerDao(
     Timed.value(
       metrics.daml.index.db.storeTransactionDbMetrics.insertCompletion,
       submitterInfo
-        .map(prepareCompletionInsert(_, offsetStep.offset, transactionId, recordTime))
+        .map(prepareCompletionInsert(_, offsetStep.offset, transactionId, recordTime, dbType))
         .foreach(_.execute()),
     )
 
@@ -589,7 +589,7 @@ private class JdbcLedgerDao(
                 blindingInfo = None,
               ).write(metrics)
               submitterInfo
-                .map(prepareCompletionInsert(_, offset, tx.transactionId, tx.recordedAt))
+                .map(prepareCompletionInsert(_, offset, tx.transactionId, tx.recordedAt, dbType))
                 .foreach(_.execute())
             case LedgerEntry.Rejection(recordTime, commandId, applicationId, actAs, reason) =>
               val _ = prepareRejectionInsert(
@@ -597,6 +597,7 @@ private class JdbcLedgerDao(
                 offset = offset,
                 recordTime = recordTime,
                 reason = reason,
+                dbType,
               ).execute()
           }
         }

@@ -24,7 +24,7 @@ create table participant_contracts
     create_key_hash_hex          VARCHAR2(4000),
     create_key_hash              BLOB,
     create_ledger_effective_time TIMESTAMP,
-    create_argument_compression  NUMBER
+    create_argument_compression  SMALLINT
 );
 
 -- support looking up a contract by key
