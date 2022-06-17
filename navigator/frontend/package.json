@@ -68,7 +68,7 @@
     "enzyme": "^3.11.0",
     "es6-promise": "^4.1.1",
     "graphql": "^15.4.0",
-    "jpeg-js": "^0.4.1",
+    "jpeg-js": "^0.4.4",
     "lodash": "^4.17.19",
     "modernizr": "^3.11.4",
     "moment": "^2.23.0",
